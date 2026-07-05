@@ -4,14 +4,14 @@ namespace EventService.Application.DTOs;
 
 public class EventDto {
     
-    public string? Title { get; set; }
-    public string? Description { get; set; }
+    public required string Title { get; set; }
+    public required string Description { get; set; }
 
     public Event ToEntity() {
         return new Event() {
                 Id = Guid.NewGuid(),
-                Title = Title ?? string.Empty,
-                Description = Description ?? string.Empty,
+                Title = Title,
+                Description = Description,
                 CreatedAt = DateTime.UtcNow
         };
     }
