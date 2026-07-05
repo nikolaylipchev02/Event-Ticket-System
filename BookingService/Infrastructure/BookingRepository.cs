@@ -15,6 +15,7 @@ public class BookingRepository : IBookingRepository {
     public async Task<List<Booking>> GetBookings(Guid userId) {
         return await _bookingServiceDbContext.Bookings
                 .AsNoTracking()
+                .Where(b => b.UserId == userId)
                 .ToListAsync();
     }
 
