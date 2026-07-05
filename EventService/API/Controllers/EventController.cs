@@ -39,8 +39,10 @@ public class EventController : ControllerBase {
     [HttpPost]
     public async Task<IActionResult> CreateEvent([FromBody] CreateEventDto request) {
         Event eventToCreate = new() {
+                Id = Guid.NewGuid(),
                 Title = request.Title,
-                Description = request.Description
+                Description = request.Description,
+                CreatedAt = DateTime.UtcNow
         };
 
         await _eventsRepository.CreateEvent(eventToCreate);
