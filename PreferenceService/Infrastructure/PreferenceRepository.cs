@@ -13,11 +13,10 @@ public class PreferenceRepository : IPreferenceRepository {
         _preferenceServiceDbContext = preferenceServiceDbContext;
     }
 
-    public async Task<List<Preference>> GetPreferences(Guid userId) {
+    public async Task<Preference?> GetPreference(Guid userId) {
         return await _preferenceServiceDbContext.Preferences
                 .AsNoTracking()
-                .Where(p => p.UserId == userId)
-                .ToListAsync();
+                .FirstOrDefaultAsync(p => p.UserId == userId);
     }
 
     public async Task UpdatePreference(Preference preference) {

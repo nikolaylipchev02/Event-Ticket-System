@@ -16,9 +16,9 @@ public class PreferenceController : ControllerBase {
     }
     
     [HttpGet("{userId:guid}")]
-    public async Task<ActionResult<List<Preference>>> GetPreferences(Guid userId) {
+    public async Task<ActionResult<Preference>> GetPreference(Guid userId) {
         // TODO: proper return types
-        return Ok(await _preferenceRepository.GetPreferences(userId));
+        return Ok(await _preferenceRepository.GetPreference(userId));
     }
     
     [HttpPatch("{userId:guid}")]
@@ -29,6 +29,9 @@ public class PreferenceController : ControllerBase {
             // TODO: implement patching data
 
             await _preferenceRepository.UpdatePreference(preference);
+        }
+        else {
+            return NotFound();
         }
         
         // TODO: proper return types
