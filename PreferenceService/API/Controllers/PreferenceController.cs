@@ -16,14 +16,14 @@ public class PreferenceController : ControllerBase {
     }
     
     [HttpGet("{userId:guid}")]
-    public async Task<ActionResult<List<Preference>>> GetEvents(Guid userId) {
+    public async Task<ActionResult<List<Preference>>> GetPreferences(Guid userId) {
         // TODO: proper return types
         return Ok(await _preferenceRepository.GetPreferences(userId));
     }
     
     [HttpPatch("{userId:guid}")]
-    public async Task<IActionResult> UpdatePreference(UpdatePreferenceDto request) {
-        Preference? preference = await _preferenceRepository.GetSpecificPreference(request.UserId);
+    public async Task<IActionResult> UpdatePreference(Guid userId, UpdatePreferenceDto request) {
+        Preference? preference = await _preferenceRepository.GetSpecificPreference(userId);
 
         if (preference is not null) {
             // TODO: implement patching data
