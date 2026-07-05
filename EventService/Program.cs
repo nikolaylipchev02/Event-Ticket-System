@@ -1,12 +1,17 @@
+using EventService.Application;
 using EventService.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
-var builder = WebApplication.CreateBuilder(args);
+const string EVENT_SERVICE_DB_CONNECTION_STRING = "EventServiceDbConnection";
+
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
+BindDependencies();
+ConnectToPostgreSql();
 
-var app = builder.Build();
-// Configure the HTTP request pipeline.
+WebApplication app = builder.Build();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -15,3 +20,16 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.Run();
+return;
+
+void ConnectToPostgreSql() {
+    string connectionString = builder.Configuration.GetConnectionString($"{EVENT_SERVICE_DB_CONNECTION_STRING}")
+                              ?? throw new InvalidOperationException($"Connection string '{EVENT_SERVICE_DB_CONNECTION_STRING}' was not found");
+    builder.Services.AddDbContext<EventServiceDbContext>(options => {
+        options.UseNpgsql(connectionString);
+    });
+}
+
+void BindDependencies() {
+    builder.Services.AddScoped<IEventsRepository, EventsRepository>();
+}
