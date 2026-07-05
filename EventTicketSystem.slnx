@@ -1,2 +1,6 @@
 <Solution>
+  <Project Path="BookingService/BookingService.csproj" />
+  <Project Path="EventService/EventService.csproj" />
+  <Project Path="NotificationsService/NotificationsService.csproj" />
+  <Project Path="PreferencesService/PreferencesService.csproj" />
 </Solution>
