@@ -15,10 +15,8 @@ public class NotificationController : ControllerBase {
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<IActionResult> GetNotifications(Guid id) {
-        await _notificationRepository.GetNotifications(id);
-        
+    public async Task<ActionResult<List<Notification>>> GetNotifications(Guid id) {
         // TODO: proper return types
-        return Ok();
+        return Ok(await _notificationRepository.GetNotifications(id));
     }
 }
