@@ -7,10 +7,14 @@ const string NOTIFICATION_SERVICE_DB_CONNECTION_STRING = "NotificationServiceDbC
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
+builder.Services.AddControllers();
+
 BindDependencies();
 ConnectToPostgreSql();
 
 WebApplication app = builder.Build();
+
+app.MapControllers();
 
 if (app.Environment.IsDevelopment())
 {
