@@ -9,23 +9,23 @@ namespace EventService.API.Controllers;
 [Route("api/events")]
 public class EventController : ControllerBase {
     
-    readonly IEventsRepository _eventsRepository;
+    readonly IEventRepository _eventRepository;
     
-    public EventController(IEventsRepository eventsRepository) {
-        _eventsRepository = eventsRepository;
+    public EventController(IEventRepository eventRepository) {
+        _eventRepository = eventRepository;
     }
     
     // Get Events
     [HttpGet]
     public async Task<ActionResult<List<Event>>> GetEvents() {
         // TODO: proper return types
-        return Ok(await _eventsRepository.GetEvents());
+        return Ok(await _eventRepository.GetEvents());
     }
     
     // Get Specific Event
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<Event>> GetSpecificEvent(Guid id) {
-        Event? existingEvent = await _eventsRepository.GetSpecificEvent(id);
+        Event? existingEvent = await _eventRepository.GetSpecificEvent(id);
 
         if (existingEvent is null) {
             return NotFound();
@@ -45,7 +45,7 @@ public class EventController : ControllerBase {
                 CreatedAt = DateTime.UtcNow
         };
 
-        await _eventsRepository.CreateEvent(eventToCreate);
+        await _eventRepository.CreateEvent(eventToCreate);
 
         // TODO: proper return types
         return Ok();
@@ -54,7 +54,7 @@ public class EventController : ControllerBase {
     // Update Event
     [HttpPatch("{id:guid}")]
     public async Task<IActionResult> UpdateEvent(Guid id, [FromBody] UpdateEventDto request) {
-        Event? existingEvent = await _eventsRepository.GetSpecificEvent(id);
+        Event? existingEvent = await _eventRepository.GetSpecificEvent(id);
 
         if (existingEvent is null) {
             return NotFound();
@@ -68,7 +68,7 @@ public class EventController : ControllerBase {
             existingEvent.Description = request.Description;
         }
 
-        await _eventsRepository.UpdateEvent(existingEvent);
+        await _eventRepository.UpdateEvent(existingEvent);
         
         // TODO: proper return types
         return Ok();
@@ -77,7 +77,7 @@ public class EventController : ControllerBase {
     // Delete Event
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteEvent(Guid id) {
-        await _eventsRepository.DeleteEvent(id);
+        await _eventRepository.DeleteEvent(id);
         
         // TODO: proper return types
         return Ok();
