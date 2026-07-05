@@ -23,7 +23,7 @@ public class BookingController :ControllerBase {
     
     [HttpPost]
     public async Task<IActionResult> Book([FromBody] CreateBookingDto request) {
-        Booking booking = new Booking() {
+        Booking booking = new() {
             Id = Guid.NewGuid(),
             UserId = request.UserId,
             EventId = request.EventId,
@@ -37,9 +37,9 @@ public class BookingController :ControllerBase {
         return Ok();
     }
     
-    [HttpDelete("{id:userId}")]
-    public async Task<ActionResult<List<Booking>>> CancelBooking(Guid userId) {
-        await _bookingRepository.CancelBooking(userId);
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> CancelBooking(Guid id) {
+        await _bookingRepository.CancelBooking(id);
                 
         // TODO: proper return types
         return Ok();
