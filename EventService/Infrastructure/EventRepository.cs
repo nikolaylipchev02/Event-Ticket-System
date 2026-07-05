@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventService.Infrastructure;
 
-public class EventsRepository : IEventsRepository {
+public class EventRepository : IEventRepository {
     
     readonly EventServiceDbContext _eventServiceDbContext;
 
-    public EventsRepository(EventServiceDbContext eventServiceDbContext) {
+    public EventRepository(EventServiceDbContext eventServiceDbContext) {
         _eventServiceDbContext = eventServiceDbContext;
     }
 

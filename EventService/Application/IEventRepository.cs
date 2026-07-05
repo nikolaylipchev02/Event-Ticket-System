@@ -3,7 +3,7 @@ using EventService.Domain.Entities;
 
 namespace EventService.Application;
 
-public interface IEventsRepository {
+public interface IEventRepository {
 
     public Task<List<Event>> GetEvents();
     public Task<Event?> GetSpecificEvent(Guid id);

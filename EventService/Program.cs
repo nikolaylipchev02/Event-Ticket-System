@@ -31,5 +31,5 @@ void ConnectToPostgreSql() {
 }
 
 void BindDependencies() {
-    builder.Services.AddScoped<IEventsRepository, EventsRepository>();
+    builder.Services.AddScoped<IEventRepository, EventRepository>();
 }
