@@ -7,10 +7,14 @@ const string BOOKING_SERVICE_DB_CONNECTION_STRING = "BookingServiceDbConnection"
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
+builder.Services.AddControllers();
+
 BindDependencies();
 ConnectToPostgreSql();
 
 WebApplication app = builder.Build();
+
+app.MapControllers();
 
 if (app.Environment.IsDevelopment())
 {
