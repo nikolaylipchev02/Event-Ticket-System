@@ -1,0 +1,54 @@
+@page
+@model Frontend.Pages.Notifications.IndexModel
+@{
+    ViewData["Title"] = "Notifications";
+}
+
+<section class="surface-card">
+    <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-end mb-4">
+        <div>
+            <span class="eyebrow">Notification service</span>
+            <h1 class="h2 mt-2 mb-2">Notifications</h1>
+            <p class="page-copy mb-0">Enter a user ID to load notifications from <code>GET api/notifications/{id}</code>.</p>
+        </div>
+        <a class="btn btn-outline-light px-4" asp-page="/Index">Back to dashboard</a>
+    </div>
+
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-12 col-lg-8">
+            <label class="form-label" for="userId">User ID</label>
+            <input id="userId" name="UserId" value="@Model.UserId" class="form-control" placeholder="00000000-0000-0000-0000-000000000000" />
+        </div>
+        <div class="col-12 col-lg-4 d-flex align-items-end">
+            <button class="btn btn-primary w-100" type="submit">Load notifications</button>
+        </div>
+    </form>
+
+    @if (!string.IsNullOrWhiteSpace(Model.LoadError))
+    {
+        <div class="alert alert-warning" role="alert">@Model.LoadError</div>
+    }
+    else if (Model.UserId is null)
+    {
+        <p class="muted mb-0">Notifications will appear after you submit a user ID.</p>
+    }
+    else if (Model.Notifications.Count == 0)
+    {
+        <p class="muted mb-0">No notifications were returned for this user.</p>
+    }
+    else
+    {
+        <div class="data-list">
+            @foreach (var notification in Model.Notifications)
+            {
+                <div class="service-item">
+                    <div>
+                        <strong>@notification.Message</strong>
+                        <span>@notification.Type · @notification.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</span>
+                    </div>
+                    <span class="service-badge">@notification.UserId.ToString("N")[..6]</span>
+                </div>
+            }
+        </div>
+    }
+</section>

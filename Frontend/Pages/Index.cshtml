@@ -1,0 +1,145 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<section class="page-hero">
+    <div>
+        <span class="eyebrow">Frontend scaffold</span>
+        <h1 class="page-title">A Razor Pages shell for the event ticket system.</h1>
+        <p class="page-copy">
+            This first pass keeps the UI simple while wiring the frontend to your backend services through typed HttpClient registrations.
+            We can build the actual create, edit, and management screens on top of this foundation next.
+        </p>
+
+        <div class="hero-actions">
+            <a class="btn btn-primary px-4" asp-page="/Events/Index">View events</a>
+            <a class="btn btn-outline-light px-4" asp-page="/Bookings/Index">Open bookings</a>
+        </div>
+    </div>
+
+    <div class="hero-meta">
+        <div class="surface-card">
+            <div class="section-title">Backend connections</div>
+            <div class="service-list">
+                <div class="service-item">
+                    <div>
+                        <strong>Event service</strong>
+                        <span>@Model.Endpoints.EventService</span>
+                    </div>
+                    <span class="service-badge">Ready</span>
+                </div>
+                <div class="service-item">
+                    <div>
+                        <strong>Booking service</strong>
+                        <span>@Model.Endpoints.BookingService</span>
+                    </div>
+                    <span class="service-badge">Ready</span>
+                </div>
+                <div class="service-item">
+                    <div>
+                        <strong>Preference service</strong>
+                        <span>@Model.Endpoints.PreferenceService</span>
+                    </div>
+                    <span class="service-badge">Ready</span>
+                </div>
+                <div class="service-item">
+                    <div>
+                        <strong>Notification service</strong>
+                        <span>@Model.Endpoints.NotificationService</span>
+                    </div>
+                    <span class="service-badge">Ready</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-card">
+                <span class="stat-label">Events loaded</span>
+                <span class="stat-value">@Model.EventCount</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">UI status</span>
+                <span class="stat-value">Live</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+@if (!string.IsNullOrWhiteSpace(Model.LoadError))
+{
+    <div class="alert alert-warning mt-4 mb-0" role="alert">
+        @Model.LoadError
+    </div>
+}
+
+<div class="row g-4 mt-1">
+    <div class="col-12 col-lg-7">
+        <div class="info-card h-100">
+            <div class="section-title">Recent events</div>
+
+            @if (Model.RecentEvents.Count == 0)
+            {
+                <p class="muted mb-0">No events were loaded yet. Once the event service is running, the newest items will appear here.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var eventItem in Model.RecentEvents)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@eventItem.Title</strong>
+                                        <div class="muted small text-truncate">@eventItem.Description</div>
+                                    </td>
+                                    <td>@eventItem.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-5">
+        <div class="info-card h-100">
+            <div class="section-title">Next build steps</div>
+            <div class="data-list">
+                <div class="service-item">
+                    <div>
+                        <strong>Create event form</strong>
+                        <span>Will call <code>POST api/events</code>.</span>
+                    </div>
+                </div>
+                <div class="service-item">
+                    <div>
+                        <strong>Booking flow</strong>
+                        <span>Will link an event and user ID.</span>
+                    </div>
+                </div>
+                <div class="service-item">
+                    <div>
+                        <strong>Preference editor</strong>
+                        <span>Will load and patch preferences by user ID.</span>
+                    </div>
+                </div>
+                <div class="service-item">
+                    <div>
+                        <strong>Notification viewer</strong>
+                        <span>Will show user-specific notifications.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

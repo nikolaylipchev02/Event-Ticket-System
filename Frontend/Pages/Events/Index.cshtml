@@ -1,0 +1,50 @@
+@page
+@model Frontend.Pages.Events.IndexModel
+@{
+    ViewData["Title"] = "Events";
+}
+
+<section class="surface-card">
+    <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-end mb-4">
+        <div>
+            <span class="eyebrow">Event service</span>
+            <h1 class="h2 mt-2 mb-2">Event catalog</h1>
+            <p class="page-copy mb-0">This page is already connected to <code>GET api/events</code>, so it can grow into the actual event management UI next.</p>
+        </div>
+        <a class="btn btn-primary px-4" asp-page="/Index">Back to dashboard</a>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.LoadError))
+    {
+        <div class="alert alert-warning" role="alert">@Model.LoadError</div>
+    }
+
+    @if (Model.Events.Count == 0)
+    {
+        <p class="muted mb-0">No events were returned yet.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var eventItem in Model.Events)
+                    {
+                        <tr>
+                            <td><strong>@eventItem.Title</strong></td>
+                            <td>@eventItem.Description</td>
+                            <td>@eventItem.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
