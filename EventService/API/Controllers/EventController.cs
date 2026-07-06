@@ -21,6 +21,13 @@ public class EventController : ControllerBase {
         return Ok(await _eventRepository.GetEvents());
     }
     
+    // TODO: think about a better solution
+    [HttpGet("filtered")]
+    public async Task<ActionResult<List<Event>>> GetFilteredEvents([FromQuery] FilterEventDto filter) {
+        // TODO: proper return types
+        return Ok(await _eventRepository.GetFilteredEvents(filter));
+    }
+    
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<Event>> GetSpecificEvent(Guid id) {
         Event? existingEvent = await _eventRepository.GetSpecificEvent(id);

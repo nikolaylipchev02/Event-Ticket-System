@@ -6,6 +6,7 @@ namespace EventService.Application;
 public interface IEventRepository {
 
     public Task<List<Event>> GetEvents();
+    public Task<List<Event>> GetFilteredEvents(FilterEventDto filter);
     public Task<Event?> GetSpecificEvent(Guid id);
     
     public Task CreateEvent(Event e);

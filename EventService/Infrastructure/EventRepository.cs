@@ -1,4 +1,5 @@
 using EventService.Application;
+using EventService.Application.DTOs;
 using EventService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +17,36 @@ public class EventRepository : IEventRepository {
         return await _eventServiceDbContext.Events
                 .AsNoTracking()
                 .ToListAsync();
+    }
+
+    public async Task<List<Event>> GetFilteredEvents(FilterEventDto filter) {
+        IQueryable<Event> query = _eventServiceDbContext.Events.AsNoTracking();
+
+        if (filter.City is not null) {
+            query = query.Where(e => e.City == filter.City);
+        }
+        
+        if (filter.Category is not null) {
+            query = query.Where(e => e.Category == filter.Category);
+        }
+
+        if (filter.MinPrice is not null) {
+            query = query.Where(e => e.Price >= filter.MinPrice);
+        }
+
+        if (filter.MaxPrice is not null) {
+            query = query.Where(e => e.Price <= filter.MaxPrice);
+        }
+
+        if (filter.FromDate is not null) {
+            query = query.Where(e => e.Date >= filter.FromDate);
+        }
+
+        if (filter.ToDate is not null) {
+            query = query.Where(e => e.Date <= filter.ToDate);
+        }
+
+        return await query.ToListAsync();
     }
 
     public async Task<Event?> GetSpecificEvent(Guid id) {
