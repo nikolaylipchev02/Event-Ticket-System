@@ -42,6 +42,7 @@
                         <th>Title</th>
                         <th>Description</th>
                         <th>Created</th>
+                        <th class="text-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -51,6 +52,23 @@
                             <td><strong>@eventItem.Title</strong></td>
                             <td>@eventItem.Description</td>
                             <td>@eventItem.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                            <td class="text-end">
+                                <div class="d-inline-flex flex-wrap gap-2 justify-content-end">
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-light"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#editEventModal"
+                                            data-event-id="@eventItem.Id"
+                                            data-event-title="@eventItem.Title"
+                                            data-event-description="@eventItem.Description">
+                                        Update
+                                    </button>
+                                    <form method="post" asp-page-handler="Delete" class="d-inline" onsubmit="return confirm('Delete this event?');">
+                                        <input type="hidden" name="DeleteId" value="@eventItem.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
                         </tr>
                     }
                 </tbody>
@@ -94,6 +112,44 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="editEventModal" tabindex="-1" aria-labelledby="editEventModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content modal-surface">
+                <div class="modal-header">
+                    <div>
+                        <span class="eyebrow">Event service</span>
+                        <h2 class="modal-title h4 mt-1 mb-0" id="editEventModalLabel">Update Event</h2>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrWhiteSpace(Model.FormError) && Model.ShowEditModal)
+                    {
+                        <div class="alert alert-warning" role="alert">@Model.FormError</div>
+                    }
+
+                    <form method="post" asp-page-handler="Update" class="row g-3" id="updateEventForm">
+                        <input type="hidden" asp-for="UpdateId" id="updateEventId" />
+                        <div class="col-12">
+                            <label class="form-label" for="updateTitle">Title</label>
+                            <input id="updateTitle" asp-for="UpdateTitle" class="form-control" placeholder="Summer concert night" />
+                            <span class="text-danger small" asp-validation-for="UpdateTitle"></span>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="updateDescription">Description</label>
+                            <textarea id="updateDescription" asp-for="UpdateDescription" class="form-control" rows="4" placeholder="Write a short description for the event"></textarea>
+                            <span class="text-danger small" asp-validation-for="UpdateDescription"></span>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary px-4" type="submit" form="updateEventForm">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </section>
 
 @section Scripts {
@@ -109,4 +165,50 @@
             });
         </script>
     }
+    @if (Model.ShowEditModal)
+    {
+        <script>
+            window.addEventListener('load', function () {
+                const modalElement = document.getElementById('editEventModal');
+                if (modalElement) {
+                    bootstrap.Modal.getOrCreateInstance(modalElement).show();
+                }
+            });
+        </script>
+    }
+    <script>
+        window.addEventListener('DOMContentLoaded', function () {
+            const editModal = document.getElementById('editEventModal');
+            if (!editModal) {
+                return;
+            }
+
+            editModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                if (!button) {
+                    return;
+                }
+
+                const id = button.getAttribute('data-event-id') || '';
+                const title = button.getAttribute('data-event-title') || '';
+                const description = button.getAttribute('data-event-description') || '';
+
+                const idField = document.getElementById('updateEventId');
+                const titleField = document.getElementById('updateTitle');
+                const descriptionField = document.getElementById('updateDescription');
+
+                if (idField) {
+                    idField.value = id;
+                }
+
+                if (titleField) {
+                    titleField.value = title;
+                }
+
+                if (descriptionField) {
+                    descriptionField.value = description;
+                }
+            });
+        });
+    </script>
 }
