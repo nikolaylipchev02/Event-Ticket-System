@@ -22,14 +22,10 @@ public class IndexModel(IEventApiClient eventApiClient, ILogger<IndexModel> logg
     public Guid UpdateId { get; set; }
 
     [BindProperty]
-    [Required]
-    [StringLength(200, MinimumLength = 2)]
-    public string UpdateTitle { get; set; } = string.Empty;
+    public string? UpdateTitle { get; set; }
 
     [BindProperty]
-    [Required]
-    [StringLength(2000, MinimumLength = 2)]
-    public string UpdateDescription { get; set; } = string.Empty;
+    public string? UpdateDescription { get; set; }
 
     [BindProperty]
     public Guid DeleteId { get; set; }
@@ -93,10 +89,29 @@ public class IndexModel(IEventApiClient eventApiClient, ILogger<IndexModel> logg
             return Page();
         }
 
-        if (!ModelState.IsValid)
+        string? normalizedTitle = NormalizeUpdateValue(UpdateTitle);
+        string? normalizedDescription = NormalizeUpdateValue(UpdateDescription);
+
+        if (normalizedTitle is null && normalizedDescription is null)
         {
             await LoadEventsAsync(cancellationToken);
-            FormError = "Please fill in both fields before updating the event.";
+            FormError = "Please update at least one field.";
+            ShowEditModal = true;
+            return Page();
+        }
+
+        if (normalizedTitle is not null && (normalizedTitle.Length < 2 || normalizedTitle.Length > 200))
+        {
+            await LoadEventsAsync(cancellationToken);
+            FormError = "Title must be between 2 and 200 characters.";
+            ShowEditModal = true;
+            return Page();
+        }
+
+        if (normalizedDescription is not null && (normalizedDescription.Length < 2 || normalizedDescription.Length > 2000))
+        {
+            await LoadEventsAsync(cancellationToken);
+            FormError = "Description must be between 2 and 2000 characters.";
             ShowEditModal = true;
             return Page();
         }
@@ -105,8 +120,8 @@ public class IndexModel(IEventApiClient eventApiClient, ILogger<IndexModel> logg
         {
             await eventApiClient.UpdateEventAsync(UpdateId, new UpdateEventRequest
             {
-                Title = UpdateTitle.Trim(),
-                Description = UpdateDescription.Trim()
+                Title = normalizedTitle,
+                Description = normalizedDescription
             }, cancellationToken);
 
             StatusMessage = "Event updated successfully.";
@@ -158,5 +173,15 @@ public class IndexModel(IEventApiClient eventApiClient, ILogger<IndexModel> logg
             logger.LogWarning(exception, "Unable to load events.");
             LoadError = "The event service could not be reached.";
         }
+    }
+
+    private static string? NormalizeUpdateValue(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        return value.Trim();
     }
 }

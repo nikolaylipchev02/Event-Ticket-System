@@ -129,6 +129,8 @@
                         <div class="alert alert-warning" role="alert">@Model.FormError</div>
                     }
 
+                    <p class="page-copy mb-3">Change the title, the description, or both. Leave a field blank if you do not want to change it.</p>
+
                     <form method="post" asp-page-handler="Update" class="row g-3" id="updateEventForm">
                         <input type="hidden" asp-for="UpdateId" id="updateEventId" />
                         <div class="col-12">
