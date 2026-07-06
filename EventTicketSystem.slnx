@@ -2,5 +2,5 @@
   <Project Path="BookingService/BookingService.csproj" />
   <Project Path="EventService/EventService.csproj" />
   <Project Path="NotificationService\NotificationService.csproj" />
-  <Project Path="PreferencesService/PreferencesService.csproj" />
+  <Project Path="PreferenceService\PreferenceService.csproj" />
 </Solution>
