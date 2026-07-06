@@ -276,12 +276,32 @@ a {
   color: var(--text-main);
 }
 
+.surface-card .table,
+.info-card .table {
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--text-main);
+  --bs-table-striped-color: var(--text-main);
+  --bs-table-striped-bg: rgba(255, 255, 255, 0.035);
+  --bs-table-hover-color: var(--text-main);
+  --bs-table-hover-bg: rgba(105, 210, 200, 0.08);
+  margin-bottom: 0;
+  background-color: transparent;
+}
+
+.surface-card .table > :not(caption) > * > *,
+.info-card .table > :not(caption) > * > * {
+  background-color: transparent;
+  color: var(--text-main);
+  border-bottom-color: var(--border);
+}
+
 .table thead th {
-  color: var(--text-muted);
+  color: #b9c9df;
   border-bottom-color: var(--border);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: 0.78rem;
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .table td,
@@ -290,8 +310,11 @@ a {
 }
 
 .table-striped > tbody > tr:nth-of-type(odd) > * {
-  --bs-table-accent-bg: rgba(255, 255, 255, 0.03);
-  color: var(--text-main);
+  --bs-table-accent-bg: rgba(255, 255, 255, 0.035);
+}
+
+.table-striped > tbody > tr:nth-of-type(even) > * {
+  --bs-table-accent-bg: rgba(255, 255, 255, 0.015);
 }
 
 .muted {
@@ -332,4 +355,35 @@ a {
 
 .form-text {
   color: var(--text-muted) !important;
+}
+
+.surface-card code,
+.info-card code {
+  color: var(--accent);
+}
+
+.modal-surface {
+  background: linear-gradient(180deg, rgba(12, 24, 39, 0.98), rgba(9, 18, 30, 0.98));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-main);
+  border-radius: 1.25rem;
+  overflow: hidden;
+}
+
+.modal-header,
+.modal-footer {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.modal-title {
+  color: var(--text-main);
+}
+
+.btn-close-white {
+  filter: invert(1) grayscale(100%);
+  opacity: 0.85;
+}
+
+.btn-close-white:hover {
+  opacity: 1;
 }

@@ -9,10 +9,20 @@
         <div>
             <span class="eyebrow">Event service</span>
             <h1 class="h2 mt-2 mb-2">Event catalog</h1>
-            <p class="page-copy mb-0">This page is already connected to <code>GET api/events</code>, so it can grow into the actual event management UI next.</p>
+            <p class="page-copy mb-0">This page is already connected to <code>GET api/events</code> and can create events through <code>POST api/events</code>.</p>
         </div>
-        <a class="btn btn-primary px-4" asp-page="/Index">Back to dashboard</a>
+        <div class="d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-primary px-4" data-bs-toggle="modal" data-bs-target="#createEventModal">
+                Create Event
+            </button>
+            <a class="btn btn-outline-light px-4" asp-page="/Index">Back to dashboard</a>
+        </div>
     </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+    {
+        <div class="alert alert-success" role="alert">@Model.StatusMessage</div>
+    }
 
     @if (!string.IsNullOrWhiteSpace(Model.LoadError))
     {
@@ -47,4 +57,56 @@
             </table>
         </div>
     }
+
+    <div class="modal fade" id="createEventModal" tabindex="-1" aria-labelledby="createEventModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content modal-surface">
+                <div class="modal-header">
+                    <div>
+                        <span class="eyebrow">Event service</span>
+                        <h2 class="modal-title h4 mt-1 mb-0" id="createEventModalLabel">Create Event</h2>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrWhiteSpace(Model.FormError))
+                    {
+                        <div class="alert alert-warning" role="alert">@Model.FormError</div>
+                    }
+
+                    <form method="post" class="row g-3" id="createEventForm">
+                        <div class="col-12">
+                            <label class="form-label" for="title">Title</label>
+                            <input id="title" asp-for="Title" class="form-control" placeholder="Summer concert night" />
+                            <span class="text-danger small" asp-validation-for="Title"></span>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="description">Description</label>
+                            <textarea id="description" asp-for="Description" class="form-control" rows="4" placeholder="Write a short description for the event"></textarea>
+                            <span class="text-danger small" asp-validation-for="Description"></span>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary px-4" type="submit" form="createEventForm">Create event</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    @if (Model.ShowCreateModal)
+    {
+        <script>
+            window.addEventListener('load', function () {
+                const modalElement = document.getElementById('createEventModal');
+                if (modalElement) {
+                    bootstrap.Modal.getOrCreateInstance(modalElement).show();
+                }
+            });
+        </script>
+    }
+}
