@@ -3,8 +3,14 @@ namespace EventService.Domain.Entities;
 public class Event {
 
     public Guid Id { get; set; }
+    
     public required string Title { get; set; }
     public required string Description { get; set; }
+    public required EventCity City { get; set; }
+    public required EventCategory Category { get; set; }
+    public required decimal Price { get; set; }
+    public required DateTime Date { get; set; }
+    
     public DateTime CreatedAt { get; set; }
     
 }

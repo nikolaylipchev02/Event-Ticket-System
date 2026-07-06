@@ -15,14 +15,12 @@ public class EventController : ControllerBase {
         _eventRepository = eventRepository;
     }
     
-    // Get Events
     [HttpGet]
     public async Task<ActionResult<List<Event>>> GetEvents() {
         // TODO: proper return types
         return Ok(await _eventRepository.GetEvents());
     }
     
-    // Get Specific Event
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<Event>> GetSpecificEvent(Guid id) {
         Event? existingEvent = await _eventRepository.GetSpecificEvent(id);
@@ -35,13 +33,17 @@ public class EventController : ControllerBase {
         return Ok(existingEvent);
     }
 
-    // Create Event
     [HttpPost]
     public async Task<IActionResult> CreateEvent([FromBody] CreateEventDto request) {
+        // TODO: validate business rules
         Event eventToCreate = new() {
                 Id = Guid.NewGuid(),
                 Title = request.Title,
                 Description = request.Description,
+                City = request.City,
+                Category = request.Category,
+                Price = request.Price,
+                Date = request.Date,
                 CreatedAt = DateTime.UtcNow
         };
 
@@ -51,7 +53,6 @@ public class EventController : ControllerBase {
         return Ok();
     }
 
-    // Update Event
     [HttpPatch("{id:guid}")]
     public async Task<IActionResult> UpdateEvent(Guid id, [FromBody] UpdateEventDto request) {
         Event? existingEvent = await _eventRepository.GetSpecificEvent(id);
@@ -74,7 +75,6 @@ public class EventController : ControllerBase {
         return Ok();
     }
     
-    // Delete Event
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteEvent(Guid id) {
         await _eventRepository.DeleteEvent(id);
