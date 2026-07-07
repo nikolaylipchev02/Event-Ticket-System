@@ -12,6 +12,11 @@ public class UserRepository : IUserRepository {
         _userServiceDbContext = userServiceDbContext;
     }
 
+    public async Task CreateUser(User user) {
+        _userServiceDbContext.Users.Add(user);
+        await _userServiceDbContext.SaveChangesAsync();
+    }
+
     public async Task<User?> GetByEmail(string email) {
         return await _userServiceDbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
     }
