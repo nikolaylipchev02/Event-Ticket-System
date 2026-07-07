@@ -20,7 +20,7 @@ public class AuthService : IAuthService {
         _jwtTokenService = jwtTokenService;
     }
     
-    public async Task<UserResponseDto?> Register(RegisterUserRequestDto request) {
+    public async Task<AuthResponseDto?> Register(RegisterUserRequestDto request) {
         string normalizedEmail = GetNormalizedEmail(request.Email);
                 
         User? userWithThisEmailExists = await _userRepository.GetByEmail(normalizedEmail);
@@ -42,10 +42,10 @@ public class AuthService : IAuthService {
 
         await _userRepository.Add(user);
         
-        return ToResponseDto(user);
+        return ToAuthResponseDto(user);
     }
 
-    public async Task<UserResponseDto?> Login(LoginUserRequestDto request) {
+    public async Task<AuthResponseDto?> Login(LoginUserRequestDto request) {
         User? user = await _userRepository.GetByEmail(GetNormalizedEmail(request.Email));
 
         if (user is null) {
@@ -54,19 +54,20 @@ public class AuthService : IAuthService {
 
         PasswordVerificationResult result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
 
-        return result == PasswordVerificationResult.Failed ? null : ToResponseDto(user);
+        return result == PasswordVerificationResult.Failed ? null : ToAuthResponseDto(user);
     }
 
     static string GetNormalizedEmail(string email) {
         return email.Trim().ToLowerInvariant();
     }
 
-    static UserResponseDto ToResponseDto(User user) {
-        return new UserResponseDto {
+    AuthResponseDto ToAuthResponseDto(User user) {
+        return new AuthResponseDto {
             Id = user.Id,
             Name = user.Name,
             Email = user.Email,
-            Role = user.Role
+            Role = user.Role,
+            AccessToken = _jwtTokenService.CreateToken(user)
         };
     }
 }

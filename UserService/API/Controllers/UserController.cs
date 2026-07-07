@@ -15,8 +15,8 @@ public class UserController : ControllerBase {
     }
 
     [HttpPost("register")]
-    public async Task<ActionResult<UserResponseDto>> Register([FromBody] RegisterUserRequestDto request) {
-        UserResponseDto? response = await _authService.Register(request);
+    public async Task<ActionResult<AuthResponseDto>> Register([FromBody] RegisterUserRequestDto request) {
+        AuthResponseDto? response = await _authService.Register(request);
 
         if (response is null) {
             return Conflict("A user with that email already exists.");
@@ -26,8 +26,8 @@ public class UserController : ControllerBase {
     }
     
     [HttpPost("login")]
-    public async Task<ActionResult<UserResponseDto>> Login([FromBody] LoginUserRequestDto request) {
-        UserResponseDto? response = await _authService.Login(request);
+    public async Task<ActionResult<AuthResponseDto>> Login([FromBody] LoginUserRequestDto request) {
+        AuthResponseDto? response = await _authService.Login(request);
 
         if (response is null) {
             return Unauthorized();
