@@ -18,6 +18,10 @@ public class UserController : ControllerBase {
     public async Task<ActionResult<UserResponseDto>> Register([FromBody] RegisterUserRequestDto request) {
         UserResponseDto? response = await _authService.Register(request);
 
+        if (response is null) {
+            return Conflict("A user with that email already exists.");
+        }
+
         return Ok(response);
     }
     
