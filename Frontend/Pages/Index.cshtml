@@ -10,7 +10,7 @@
         <h1 class="page-title">A Razor Pages shell for the event ticket system.</h1>
         <p class="page-copy">
             This first pass keeps the UI simple while wiring the frontend to your backend services through typed HttpClient registrations.
-            We can build the actual create, edit, and management screens on top of this foundation next.
+            The new login and register popup sits in the top-right corner and talks to the UserService through the frontend proxy.
         </p>
 
         <div class="hero-actions">
@@ -48,6 +48,13 @@
                     <div>
                         <strong>Notification service</strong>
                         <span>@Model.Endpoints.NotificationService</span>
+                    </div>
+                    <span class="service-badge">Ready</span>
+                </div>
+                <div class="service-item">
+                    <div>
+                        <strong>User service</strong>
+                        <span>@Model.Endpoints.UserService</span>
                     </div>
                     <span class="service-badge">Ready</span>
                 </div>
@@ -113,8 +120,8 @@
             <div class="data-list">
                 <div class="service-item">
                     <div>
-                        <strong>Create event form</strong>
-                        <span>Will call <code>POST api/events</code>.</span>
+                        <strong>Auth popup</strong>
+                        <span>Login and register now open as a modal from the navbar.</span>
                     </div>
                 </div>
                 <div class="service-item">

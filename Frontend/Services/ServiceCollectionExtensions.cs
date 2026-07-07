@@ -12,6 +12,7 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<IBookingApiClient, BookingApiClient>(ConfigureBookingApiClient);
         services.AddHttpClient<IPreferenceApiClient, PreferenceApiClient>(ConfigurePreferenceApiClient);
         services.AddHttpClient<INotificationApiClient, NotificationApiClient>(ConfigureNotificationApiClient);
+        services.AddHttpClient<IUserApiClient, UserApiClient>(ConfigureUserApiClient);
 
         return services;
     }
@@ -34,6 +35,11 @@ public static class ServiceCollectionExtensions
     private static void ConfigureNotificationApiClient(IServiceProvider serviceProvider, HttpClient client)
     {
         client.BaseAddress = GetServiceBaseAddress(serviceProvider, options => options.NotificationService);
+    }
+
+    private static void ConfigureUserApiClient(IServiceProvider serviceProvider, HttpClient client)
+    {
+        client.BaseAddress = GetServiceBaseAddress(serviceProvider, options => options.UserService);
     }
 
     private static Uri GetServiceBaseAddress(IServiceProvider serviceProvider, Func<ServiceEndpointsOptions, string> selector)
