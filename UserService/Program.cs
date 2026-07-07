@@ -1,6 +1,9 @@
+using Microsoft.AspNetCore.Identity;
 using UserService.Application;
 using UserService.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using UserService.Application.AuthService;
+using UserService.Domain.Entities;
 
 const string USER_SERVICE_DB_CONNECTION_STRING = "UserServiceDbConnection";
 
@@ -35,5 +38,7 @@ void ConnectToPostgreSql() {
 }
 
 void BindDependencies() {
+    builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+    builder.Services.AddScoped<IAuthService, AuthService>();
     builder.Services.AddScoped<IUserRepository, UserRepository>();
 }

@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using UserService.Application;
+using UserService.Application.AuthService;
 using UserService.Application.DTOs;
 
 namespace UserService.API.Controllers;
@@ -8,22 +8,28 @@ namespace UserService.API.Controllers;
 [Route("api/users")]
 public class UserController : ControllerBase {
 
-    readonly AuthService _authService;
-    readonly IUserRepository _userRepository;
+    readonly IAuthService _authService;
     
-    public UserController(AuthService authService, IUserRepository userRepository) {
+    public UserController(IAuthService authService) {
         _authService = authService;
-        _userRepository = userRepository;
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register(CreateUserDto request) {
-        return Ok();
+    public async Task<ActionResult<UserResponseDto>> Register([FromBody] RegisterUserRequestDto request) {
+        UserResponseDto? response = await _authService.Register(request);
+
+        return Ok(response);
     }
     
     [HttpPost("login")]
-    public async Task<IActionResult> Login(LoginUserDto request) {
-        return Ok();
+    public async Task<ActionResult<UserResponseDto>> Login([FromBody] LoginUserRequestDto request) {
+        UserResponseDto? response = await _authService.Login(request);
+
+        if (response is null) {
+            return Unauthorized();
+        }
+        
+        return Ok(response);
     }
 
 }

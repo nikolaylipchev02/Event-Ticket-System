@@ -13,7 +13,14 @@ public class UserServiceDbContext : DbContext {
         modelBuilder.Entity<User>(entity => {
             entity.ToTable("users");
 
-            entity.HasKey(preference => preference.Id);
+            entity.HasKey(user => user.Id);
+
+            entity.Property(user => user.Name).IsRequired();
+            
+            entity.HasIndex(user => user.Email).IsUnique();
+            
+            entity.Property(user => user.PasswordHash).IsRequired();
+            entity.Property(user => user.Role).HasDefaultValue(UserRole.User);
         });
     }
 }
