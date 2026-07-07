@@ -1,14 +1,21 @@
-var builder = WebApplication.CreateBuilder(args);
+using UserService.Application;
+using UserService.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 
-// Add services to the container.
+const string USER_SERVICE_DB_CONNECTION_STRING = "UserServiceDbConnection";
 
-builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
 builder.Services.AddOpenApi();
+builder.Services.AddControllers();
 
-var app = builder.Build();
+BindDependencies();
+ConnectToPostgreSql();
 
-// Configure the HTTP request pipeline.
+WebApplication app = builder.Build();
+
+app.MapControllers();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -16,8 +23,17 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
-
-app.MapControllers();
-
 app.Run();
+return;
+
+void ConnectToPostgreSql() {
+    string connectionString = builder.Configuration.GetConnectionString($"{USER_SERVICE_DB_CONNECTION_STRING}")
+                              ?? throw new InvalidOperationException($"Connection string '{USER_SERVICE_DB_CONNECTION_STRING}' was not found");
+    builder.Services.AddDbContext<UserServiceDbContext>(options => {
+        options.UseNpgsql(connectionString);
+    });
+}
+
+void BindDependencies() {
+    builder.Services.AddScoped<IUserRepository, UserRepository>();
+}
