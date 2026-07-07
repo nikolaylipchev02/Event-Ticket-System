@@ -8,4 +8,5 @@ public sealed class ServiceEndpointsOptions
     public string BookingService { get; set; } = "http://localhost:5045/";
     public string PreferenceService { get; set; } = "http://localhost:5176/";
     public string NotificationService { get; set; } = "http://localhost:5062/";
+    public string UserService { get; set; } = "http://localhost:5021/";
 }
