@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using UserService.Application;
 using UserService.Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using UserService.Application.AuthService;
+using UserService.Application.Authentication;
 using UserService.Domain.Entities;
 
 const string USER_SERVICE_DB_CONNECTION_STRING = "UserServiceDbConnection";

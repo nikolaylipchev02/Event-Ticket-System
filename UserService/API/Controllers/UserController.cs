@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using UserService.Application.AuthService;
+using UserService.Application.Authentication;
 using UserService.Application.DTOs;
 
 namespace UserService.API.Controllers;
