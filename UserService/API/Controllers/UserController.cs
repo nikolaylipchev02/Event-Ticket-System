@@ -22,7 +22,7 @@ public class UserController : ControllerBase {
             return Conflict("A user with that email already exists.");
         }
 
-        return Ok(response);
+        return Created($"/api/users/{response.Id}", response);
     }
     
     [HttpPost("login")]
