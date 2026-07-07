@@ -24,6 +24,14 @@ public class EventController : ControllerBase {
     // TODO: think about a better solution
     [HttpGet("filtered")]
     public async Task<ActionResult<List<Event>>> GetFilteredEvents([FromQuery] FilterEventDto filter) {
+        if (filter.MinPrice is not null && filter.MaxPrice is not null && filter.MinPrice > filter.MaxPrice) {
+            return BadRequest("Min Price cannot be greater than Max Price");
+        }
+        
+        if (filter.FromDate is not null && filter.ToDate is not null && filter.FromDate > filter.ToDate) {
+            return BadRequest("From Date cannot be greater than To Date");
+        }
+        
         // TODO: proper return types
         return Ok(await _eventRepository.GetFilteredEvents(filter));
     }
