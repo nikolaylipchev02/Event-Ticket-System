@@ -12,7 +12,7 @@ public class UserRepository : IUserRepository {
         _userServiceDbContext = userServiceDbContext;
     }
 
-    public async Task CreateUser(User user) {
+    public async Task Add(User user) {
         _userServiceDbContext.Users.Add(user);
         await _userServiceDbContext.SaveChangesAsync();
     }

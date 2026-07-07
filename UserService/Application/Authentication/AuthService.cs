@@ -40,7 +40,7 @@ public class AuthService : IAuthService {
 
         user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
 
-        await _userRepository.CreateUser(user);
+        await _userRepository.Add(user);
         
         return ToResponseDto(user);
     }
