@@ -4,4 +4,5 @@
   <Project Path="Frontend/Frontend.csproj" />
   <Project Path="NotificationService\NotificationService.csproj" />
   <Project Path="PreferenceService\PreferenceService.csproj" />
+  <Project Path="UserService/UserService.csproj" />
 </Solution>
