@@ -2,16 +2,22 @@ using Microsoft.AspNetCore.Identity;
 using UserService.Application.DTOs;
 using UserService.Domain.Entities;
 
-namespace UserService.Application.AuthService;
+namespace UserService.Application.Authentication;
 
 public class AuthService : IAuthService {
 
     readonly IUserRepository _userRepository;
     readonly IPasswordHasher<User> _passwordHasher;
+    readonly JwtTokenService _jwtTokenService;
     
-    public AuthService(IUserRepository userRepository, IPasswordHasher<User> passwordHasher) {
+    public AuthService(
+        IUserRepository userRepository,
+        IPasswordHasher<User> passwordHasher,
+        JwtTokenService jwtTokenService
+    ) {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
+        _jwtTokenService = jwtTokenService;
     }
     
     public async Task<UserResponseDto?> Register(RegisterUserRequestDto request) {
