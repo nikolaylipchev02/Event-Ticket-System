@@ -15,7 +15,9 @@ public class AuthService : IAuthService {
     }
     
     public async Task<UserResponseDto?> Register(RegisterUserRequestDto request) {
-        User? userWithThisEmailExists = await _userRepository.GetByEmail(request.Email);
+        string normalizedEmail = GetNormalizedEmail(request.Email);
+                
+        User? userWithThisEmailExists = await _userRepository.GetByEmail(normalizedEmail);
         
         if (userWithThisEmailExists is not null) {
             return null;
@@ -24,8 +26,8 @@ public class AuthService : IAuthService {
         User user = new() {
             Id = Guid.NewGuid(),
             Name = request.Name,
-            Email = request.Email,
-            PasswordHash = request.Password,
+            Email = normalizedEmail,
+            PasswordHash = string.Empty,
             Role = request.Role,
             CreatedAt = DateTime.UtcNow
         };
@@ -34,16 +36,11 @@ public class AuthService : IAuthService {
 
         await _userRepository.CreateUser(user);
         
-        return new UserResponseDto() {
-            Id = user.Id,
-            Name = request.Name,
-            Email = request.Email,
-            Role = user.Role
-        };
+        return ToResponseDto(user);
     }
 
     public async Task<UserResponseDto?> Login(LoginUserRequestDto request) {
-        User? user = await _userRepository.GetByEmail(request.Email);
+        User? user = await _userRepository.GetByEmail(GetNormalizedEmail(request.Email));
 
         if (user is null) {
             return null;
@@ -51,11 +48,15 @@ public class AuthService : IAuthService {
 
         PasswordVerificationResult result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
 
-        if (result == PasswordVerificationResult.Failed) {
-            return null;
-        }
+        return result == PasswordVerificationResult.Failed ? null : ToResponseDto(user);
+    }
 
-        return new UserResponseDto() {
+    static string GetNormalizedEmail(string email) {
+        return email.Trim().ToLowerInvariant();
+    }
+
+    static UserResponseDto ToResponseDto(User user) {
+        return new UserResponseDto {
             Id = user.Id,
             Name = user.Name,
             Email = user.Email,
