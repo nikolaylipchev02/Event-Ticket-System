@@ -9,6 +9,8 @@ const string USER_SERVICE_DB_CONNECTION_STRING = "UserServiceDbConnection";
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
+
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 
