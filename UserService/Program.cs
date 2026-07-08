@@ -1,4 +1,5 @@
 using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using UserService.Application;
 using UserService.Infrastructure;
@@ -13,22 +14,26 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 
-builder.Services.AddAuthentication()
-        .AddJwtBearer(options => {
-            JwtOptions jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()
-                                    ?? throw new InvalidOperationException("JWT configuration was not found");
+builder.Services.AddAuthentication(options => {
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options => {
+    JwtOptions jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()
+                            ?? throw new InvalidOperationException("JWT configuration was not found");
 
-            options.TokenValidationParameters = new TokenValidationParameters {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                ValidIssuer = jwtOptions.Issuer,
-                ValidAudience = jwtOptions.Audience,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key)),
-                ClockSkew = TimeSpan.FromMinutes(1)
-            };
-        });
+    options.TokenValidationParameters = new TokenValidationParameters {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtOptions.Issuer,
+        ValidAudience = jwtOptions.Audience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key)),
+        ClockSkew = TimeSpan.FromMinutes(1)
+    };
+});
 
 builder.Services.AddAuthorization();
 
