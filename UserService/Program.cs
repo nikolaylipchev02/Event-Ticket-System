@@ -40,6 +40,9 @@ ConnectToPostgreSql();
 
 WebApplication app = builder.Build();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
 
 if (app.Environment.IsDevelopment())
