@@ -2,6 +2,7 @@ using Frontend.Contracts;
 using Frontend.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Net;
 
 namespace Frontend.Pages.Notifications;
 
@@ -24,6 +25,11 @@ public class IndexModel(INotificationApiClient notificationApiClient, ILogger<In
         try
         {
             Notifications = await notificationApiClient.GetNotificationsAsync(UserId.Value, cancellationToken);
+        }
+        catch (HttpRequestException exception) when (exception.StatusCode == HttpStatusCode.Forbidden)
+        {
+            logger.LogWarning(exception, "Forbidden when loading notifications for {UserId}.", UserId);
+            LoadError = "You are not allowed to view those notifications.";
         }
         catch (Exception exception)
         {
