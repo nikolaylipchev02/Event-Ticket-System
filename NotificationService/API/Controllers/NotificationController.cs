@@ -20,7 +20,7 @@ public class NotificationController : ControllerBase {
     [Authorize]
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<List<Notification>>> GetNotifications(Guid id) {
-        string? userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
         if (userIdString is null) {
             return Forbid();

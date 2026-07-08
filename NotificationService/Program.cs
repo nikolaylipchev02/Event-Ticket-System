@@ -18,6 +18,8 @@ builder.Services.AddAuthentication(options => {
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 })
 .AddJwtBearer(options => {
+    options.MapInboundClaims = false;
+
     JwtOptions jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()
                             ?? throw new InvalidOperationException("JWT configuration was not found");
 
