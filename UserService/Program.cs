@@ -9,6 +9,7 @@ using UserService.Application.Authentication;
 using UserService.Domain.Entities;
 
 const string USER_SERVICE_DB_CONNECTION_STRING = "UserServiceDbConnection";
+const int JWT_CLOCK_SKEW_IN_MINUTES = 1;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -31,7 +32,7 @@ builder.Services.AddAuthentication(options => {
         ValidIssuer = jwtOptions.Issuer,
         ValidAudience = jwtOptions.Audience,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key)),
-        ClockSkew = TimeSpan.FromMinutes(1)
+        ClockSkew = TimeSpan.FromMinutes(JWT_CLOCK_SKEW_IN_MINUTES)
     };
 });
 
