@@ -7,7 +7,7 @@ using UserService.Domain.Entities;
 
 namespace UserService.Application.Authentication;
 
-public class JwtTokenService {
+public class JwtTokenService : IJwtTokenService {
     
     readonly JwtOptions _options;
 

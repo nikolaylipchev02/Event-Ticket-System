@@ -38,7 +38,7 @@ void ConnectToPostgreSql() {
 }
 
 void BindDependencies() {
-    builder.Services.AddSingleton<JwtTokenService>();
+    builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 
     builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
     builder.Services.AddScoped<IAuthService, AuthService>();

@@ -8,12 +8,12 @@ public class AuthService : IAuthService {
 
     readonly IUserRepository _userRepository;
     readonly IPasswordHasher<User> _passwordHasher;
-    readonly JwtTokenService _jwtTokenService;
+    readonly IJwtTokenService _jwtTokenService;
     
     public AuthService(
         IUserRepository userRepository,
         IPasswordHasher<User> passwordHasher,
-        JwtTokenService jwtTokenService
+        IJwtTokenService jwtTokenService
     ) {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
