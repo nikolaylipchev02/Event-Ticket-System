@@ -9,6 +9,7 @@ public class Event {
     public required EventCategory Category { get; set; }
     public required decimal Price { get; set; }
     public required DateTime Date { get; set; }
+    public required int TotalTickets { get; set; }
 
     public DateTime CreatedAt { get; set; }
 }

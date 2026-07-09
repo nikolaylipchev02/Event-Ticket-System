@@ -8,6 +8,7 @@ public class BookingServiceDbContext : DbContext {
     }
 
     public DbSet<Booking> Bookings => Set<Booking>();
+    public DbSet<TicketInventory> TicketsInventory => Set<TicketInventory>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         modelBuilder.Entity<Booking>(entity => {
@@ -18,6 +19,17 @@ public class BookingServiceDbContext : DbContext {
             entity.Property(booking => booking.UserId).IsRequired();
             entity.Property(booking => booking.EventId).IsRequired();
             entity.Property(booking => booking.Status).HasDefaultValue(BookingStatus.Booked);
+        });
+
+        modelBuilder.Entity<TicketInventory>(entity => {
+            entity.ToTable("ticketsInventory");
+
+            entity.HasKey(ticket => ticket.Id);
+
+            entity.Property(ticket => ticket.EventId);
+            entity.HasIndex(ticket => ticket.EventId).IsUnique();
+
+            entity.Property(ticket => ticket.RemainingTickets).IsRequired();
         });
     }
 }

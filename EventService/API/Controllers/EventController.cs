@@ -58,7 +58,8 @@ public class EventController : ControllerBase {
                 Category = request.Category,
                 Price = request.Price,
                 Date = NormalizeEventDate(request.Date),
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                TotalTickets = request.TotalTickets
         };
 
         await _eventRepository.CreateEvent(eventToCreate);
