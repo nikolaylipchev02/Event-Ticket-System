@@ -18,21 +18,15 @@ public class NotificationController : ControllerBase {
     }
 
     [Authorize]
-    [HttpGet("{id:guid}")]
-    public async Task<ActionResult<List<Notification>>> GetNotifications(Guid id) {
+    [HttpGet]
+    public async Task<ActionResult<List<Notification>>> GetNotifications() {
         string? userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
         if (userIdString is null) {
             return Forbid();
         }
-        
-        Guid userIdGuid = Guid.Parse(userIdString);
-        
-        if (id != userIdGuid) {
-            return Forbid();
-        }
-        
+
         // TODO: proper return types
-        return Ok(await _notificationRepository.GetNotifications(userIdGuid));
+        return Ok(await _notificationRepository.GetNotifications(Guid.Parse(userIdString)));
     }
 }
