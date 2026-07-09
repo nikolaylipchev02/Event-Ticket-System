@@ -1,6 +1,7 @@
 using Frontend.Contracts;
 using Frontend.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.ComponentModel.DataAnnotations;
 
@@ -16,6 +17,22 @@ public class IndexModel(IEventApiClient eventApiClient, ILogger<IndexModel> logg
     [Required]
     [StringLength(2000, MinimumLength = 2)]
     public string Description { get; set; } = string.Empty;
+
+    [BindProperty]
+    [Required]
+    public EventCity? City { get; set; }
+
+    [BindProperty]
+    [Required]
+    public EventCategory? Category { get; set; }
+
+    [BindProperty]
+    [Required]
+    public decimal? Price { get; set; }
+
+    [BindProperty]
+    [Required]
+    public DateTime? Date { get; set; }
 
     [BindProperty] public Guid UpdateId { get; set; }
 
@@ -35,6 +52,10 @@ public class IndexModel(IEventApiClient eventApiClient, ILogger<IndexModel> logg
 
     public bool ShowEditModal { get; private set; }
 
+    public IReadOnlyList<SelectListItem> CityOptions { get; } = BuildEnumOptions<EventCity>();
+
+    public IReadOnlyList<SelectListItem> CategoryOptions { get; } = BuildEnumOptions<EventCategory>();
+
     [TempData] public string? StatusMessage { get; set; }
 
     public async Task OnGetAsync(CancellationToken cancellationToken) {
@@ -44,7 +65,21 @@ public class IndexModel(IEventApiClient eventApiClient, ILogger<IndexModel> logg
     public async Task<IActionResult> OnPostAsync(CancellationToken cancellationToken) {
         if (!ModelState.IsValid) {
             await LoadEventsAsync(cancellationToken);
-            FormError = "Please fill in both fields before creating the event.";
+            FormError = "Please fill in all required fields before creating the event.";
+            ShowCreateModal = true;
+            return Page();
+        }
+
+        if (City is null || Category is null || Price is null || Date is null) {
+            await LoadEventsAsync(cancellationToken);
+            FormError = "Please choose a city, category, price, and date for the event.";
+            ShowCreateModal = true;
+            return Page();
+        }
+
+        if (Price.Value < 0.01m) {
+            await LoadEventsAsync(cancellationToken);
+            FormError = "Price must be at least 0.01.";
             ShowCreateModal = true;
             return Page();
         }
@@ -52,7 +87,11 @@ public class IndexModel(IEventApiClient eventApiClient, ILogger<IndexModel> logg
         try {
             await eventApiClient.CreateEventAsync(new CreateEventRequest {
                     Title = Title.Trim(),
-                    Description = Description.Trim()
+                    Description = Description.Trim(),
+                    City = City.Value,
+                    Category = Category.Value,
+                    Price = Price.Value,
+                    Date = Date.Value
             }, cancellationToken);
 
             StatusMessage = "Event created successfully.";
@@ -155,5 +194,37 @@ public class IndexModel(IEventApiClient eventApiClient, ILogger<IndexModel> logg
         }
 
         return value.Trim();
+    }
+
+    public string FormatEnumValue(string value) {
+        return FormatEnumName(value);
+    }
+
+    static IReadOnlyList<SelectListItem> BuildEnumOptions<TEnum>() where TEnum : struct, Enum {
+        return Enum.GetValues<TEnum>()
+                .Select(value => new SelectListItem {
+                        Value = value.ToString(),
+                        Text = FormatEnumName(value.ToString())
+                })
+                .ToList();
+    }
+
+    static string FormatEnumName(string value) {
+        if (string.IsNullOrWhiteSpace(value)) {
+            return value;
+        }
+
+        List<char> formatted = [];
+
+        for (int index = 0; index < value.Length; index++) {
+            char current = value[index];
+            if (index > 0 && char.IsUpper(current) && char.IsLower(value[index - 1])) {
+                formatted.Add(' ');
+            }
+
+            formatted.Add(current);
+        }
+
+        return new string(formatted.ToArray());
     }
 }

@@ -9,8 +9,10 @@
         <div>
             <span class="eyebrow">Event service</span>
             <h1 class="h2 mt-2 mb-2">Event catalog</h1>
-            <p class="page-copy mb-0">This page is already connected to <code>GET api/events</code> and can create
-                events through <code>POST api/events</code>.</p>
+            <p class="page-copy mb-0">
+                This page is wired to <code>GET api/events</code> and now creates events with the full
+                <code>POST api/events</code> payload: title, description, city, category, price, and date.
+            </p>
         </div>
         <div class="d-flex flex-wrap gap-2">
             <button type="button" class="btn btn-primary px-4" data-bs-toggle="modal"
@@ -37,8 +39,8 @@
             <table class="table table-striped align-middle mb-0">
                 <thead>
                 <tr>
-                    <th>Title</th>
-                    <th>Description</th>
+                    <th>Event</th>
+                    <th>Schedule</th>
                     <th>Created</th>
                     <th class="text-end">Actions</th>
                 </tr>
@@ -46,8 +48,19 @@
                 <tbody>
                 @foreach (EventItem eventItem in Model.Events) {
                     <tr>
-                        <td><strong>@eventItem.Title</strong></td>
-                        <td>@eventItem.Description</td>
+                        <td>
+                            <strong class="d-block">@eventItem.Title</strong>
+                            <div class="d-flex flex-wrap gap-2 mt-2">
+                                <span class="event-chip">@Model.FormatEnumValue(eventItem.City.ToString())</span>
+                                <span class="event-chip">@Model.FormatEnumValue(eventItem.Category.ToString())</span>
+                                <span class="event-chip">@eventItem.Price.ToString("0.00")</span>
+                            </div>
+                            <div class="muted small mt-2">@eventItem.Description</div>
+                        </td>
+                        <td>
+                            <div class="fw-semibold">@eventItem.Date.ToLocalTime().ToString("dd MMM yyyy HH:mm")</div>
+                            <div class="muted small">Event date and start time</div>
+                        </td>
                         <td>@eventItem.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
                         <td class="text-end">
                             <div class="d-inline-flex flex-wrap gap-2 justify-content-end">
@@ -96,18 +109,50 @@
                         <div class="alert alert-warning" role="alert">@Model.FormError</div>
                     }
 
-                    <form method="post" class="row g-3" id="createEventForm">
+                    <form method="post" class="row g-4" id="createEventForm">
                         <div class="col-12">
-                            <label class="form-label" for="title">Title</label>
-                            <input id="title" asp-for="Title" class="form-control" placeholder="Summer concert night"/>
-                            <span class="text-danger small" asp-validation-for="Title"></span>
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label" for="title">Title</label>
+                                    <input id="title" asp-for="Title" class="form-control"
+                                           placeholder="Summer concert night"/>
+                                    <span class="text-danger small" asp-validation-for="Title"></span>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label" for="description">Description</label>
+                                    <textarea id="description" asp-for="Description" class="form-control" rows="4"
+                                              placeholder="Write a short description for the event"></textarea>
+                                    <span class="text-danger small" asp-validation-for="Description"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="city">City</label>
+                                    <select id="city" asp-for="City" asp-items="Model.CityOptions" class="form-select">
+                                        <option value="">Choose a city</option>
+                                    </select>
+                                    <span class="text-danger small" asp-validation-for="City"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="category">Category</label>
+                                    <select id="category" asp-for="Category" asp-items="Model.CategoryOptions" class="form-select">
+                                        <option value="">Choose a category</option>
+                                    </select>
+                                    <span class="text-danger small" asp-validation-for="Category"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="price">Price</label>
+                                    <input id="price" asp-for="Price" class="form-control" type="number" min="0"
+                                           step="0.01" inputmode="decimal" placeholder="25.00"/>
+                                    <span class="text-danger small" asp-validation-for="Price"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="date">Date</label>
+                                    <input id="date" asp-for="Date" class="form-control" type="datetime-local"
+                                           asp-format="{0:yyyy-MM-ddTHH:mm}"/>
+                                    <span class="text-danger small" asp-validation-for="Date"></span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-12">
-                            <label class="form-label" for="description">Description</label>
-                            <textarea id="description" asp-for="Description" class="form-control" rows="4"
-                                      placeholder="Write a short description for the event"></textarea>
-                            <span class="text-danger small" asp-validation-for="Description"></span>
-                        </div>
+
                     </form>
                 </div>
                 <div class="modal-footer">
