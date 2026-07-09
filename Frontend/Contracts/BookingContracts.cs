@@ -1,13 +1,11 @@
 namespace Frontend.Contracts;
 
-public enum BookingStatus
-{
+public enum BookingStatus {
     Booked,
     Cancelled
 }
 
-public sealed class BookingItem
-{
+public sealed class BookingItem {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }
     public Guid EventId { get; set; }
@@ -16,7 +14,6 @@ public sealed class BookingItem
     public DateTime? CancelledAt { get; set; }
 }
 
-public sealed class CreateBookingRequest
-{
+public sealed class CreateBookingRequest {
     public required Guid EventId { get; set; }
 }

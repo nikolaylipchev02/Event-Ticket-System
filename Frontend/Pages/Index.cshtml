@@ -9,8 +9,10 @@
         <span class="eyebrow">Frontend scaffold</span>
         <h1 class="page-title">A Razor Pages shell for the event ticket system.</h1>
         <p class="page-copy">
-            This first pass keeps the UI simple while wiring the frontend to your backend services through typed HttpClient registrations.
-            The new login and register popup sits in the top-right corner and talks to the UserService through the frontend proxy.
+            This first pass keeps the UI simple while wiring the frontend to your backend services through typed
+            HttpClient registrations.
+            The new login and register popup sits in the top-right corner and talks to the UserService through the
+            frontend proxy.
         </p>
 
         <div class="hero-actions">
@@ -70,8 +72,7 @@
     </div>
 </section>
 
-@if (!string.IsNullOrWhiteSpace(Model.LoadError))
-{
+@if (!string.IsNullOrWhiteSpace(Model.LoadError)) {
     <div class="alert alert-warning mt-4 mb-0" role="alert">
         @Model.LoadError
     </div>
@@ -82,31 +83,29 @@
         <div class="info-card h-100">
             <div class="section-title">Recent events</div>
 
-            @if (Model.RecentEvents.Count == 0)
-            {
-                <p class="muted mb-0">No events were loaded yet. Once the event service is running, the newest items will appear here.</p>
+            @if (Model.RecentEvents.Count == 0) {
+                <p class="muted mb-0">No events were loaded yet. Once the event service is running, the newest items
+                    will appear here.</p>
             }
-            else
-            {
+            else {
                 <div class="table-responsive">
                     <table class="table table-striped align-middle mb-0">
                         <thead>
-                            <tr>
-                                <th>Title</th>
-                                <th>Created</th>
-                            </tr>
+                        <tr>
+                            <th>Title</th>
+                            <th>Created</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            @foreach (var eventItem in Model.RecentEvents)
-                            {
-                                <tr>
-                                    <td>
-                                        <strong>@eventItem.Title</strong>
-                                        <div class="muted small text-truncate">@eventItem.Description</div>
-                                    </td>
-                                    <td>@eventItem.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
-                                </tr>
-                            }
+                        @foreach (EventItem eventItem in Model.RecentEvents) {
+                            <tr>
+                                <td>
+                                    <strong>@eventItem.Title</strong>
+                                    <div class="muted small text-truncate">@eventItem.Description</div>
+                                </td>
+                                <td>@eventItem.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                            </tr>
+                        }
                         </tbody>
                     </table>
                 </div>

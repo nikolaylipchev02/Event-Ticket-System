@@ -3,7 +3,6 @@ using EventService.Domain.Entities;
 namespace EventService.Application.DTOs;
 
 public class FilterEventDto {
-
     public EventCity? City { get; set; }
     public EventCategory? Category { get; set; }
     public decimal? MinPrice { get; set; }

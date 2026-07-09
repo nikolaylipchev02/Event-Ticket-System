@@ -9,79 +9,78 @@
         <div>
             <span class="eyebrow">Event service</span>
             <h1 class="h2 mt-2 mb-2">Event catalog</h1>
-            <p class="page-copy mb-0">This page is already connected to <code>GET api/events</code> and can create events through <code>POST api/events</code>.</p>
+            <p class="page-copy mb-0">This page is already connected to <code>GET api/events</code> and can create
+                events through <code>POST api/events</code>.</p>
         </div>
         <div class="d-flex flex-wrap gap-2">
-            <button type="button" class="btn btn-primary px-4" data-bs-toggle="modal" data-bs-target="#createEventModal">
+            <button type="button" class="btn btn-primary px-4" data-bs-toggle="modal"
+                    data-bs-target="#createEventModal">
                 Create Event
             </button>
             <a class="btn btn-outline-light px-4" asp-page="/Index">Back to dashboard</a>
         </div>
     </div>
 
-    @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
-    {
+    @if (!string.IsNullOrWhiteSpace(Model.StatusMessage)) {
         <div class="alert alert-success" role="alert">@Model.StatusMessage</div>
     }
 
-    @if (!string.IsNullOrWhiteSpace(Model.LoadError))
-    {
+    @if (!string.IsNullOrWhiteSpace(Model.LoadError)) {
         <div class="alert alert-warning" role="alert">@Model.LoadError</div>
     }
 
-    @if (Model.Events.Count == 0)
-    {
+    @if (Model.Events.Count == 0) {
         <p class="muted mb-0">No events were returned yet.</p>
     }
-    else
-    {
+    else {
         <div class="table-responsive">
             <table class="table table-striped align-middle mb-0">
                 <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Description</th>
-                        <th>Created</th>
-                        <th class="text-end">Actions</th>
-                    </tr>
+                <tr>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Created</th>
+                    <th class="text-end">Actions</th>
+                </tr>
                 </thead>
                 <tbody>
-                    @foreach (var eventItem in Model.Events)
-                    {
-                        <tr>
-                            <td><strong>@eventItem.Title</strong></td>
-                            <td>@eventItem.Description</td>
-                            <td>@eventItem.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
-                            <td class="text-end">
-                                <div class="d-inline-flex flex-wrap gap-2 justify-content-end">
-                                    <button type="button"
-                                            class="btn btn-sm btn-outline-light"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#editEventModal"
-                                            data-event-id="@eventItem.Id"
-                                            data-event-title="@eventItem.Title"
-                                            data-event-description="@eventItem.Description">
-                                        Update
-                                    </button>
-                                    <button type="button"
-                                            class="btn btn-sm btn-outline-info"
-                                            data-copy-event-id="@eventItem.Id">
-                                        Copy
-                                    </button>
-                                    <form method="post" asp-page-handler="Delete" class="d-inline" onsubmit="return confirm('Delete this event?');">
-                                        <input type="hidden" name="DeleteId" value="@eventItem.Id" />
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    }
+                @foreach (EventItem eventItem in Model.Events) {
+                    <tr>
+                        <td><strong>@eventItem.Title</strong></td>
+                        <td>@eventItem.Description</td>
+                        <td>@eventItem.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                        <td class="text-end">
+                            <div class="d-inline-flex flex-wrap gap-2 justify-content-end">
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-light"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editEventModal"
+                                        data-event-id="@eventItem.Id"
+                                        data-event-title="@eventItem.Title"
+                                        data-event-description="@eventItem.Description">
+                                    Update
+                                </button>
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-info"
+                                        data-copy-event-id="@eventItem.Id">
+                                    Copy
+                                </button>
+                                <form method="post" asp-page-handler="Delete" class="d-inline"
+                                      onsubmit="return confirm('Delete this event?');">
+                                    <input type="hidden" name="DeleteId" value="@eventItem.Id"/>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
                 </tbody>
             </table>
         </div>
     }
 
-    <div class="modal fade" id="createEventModal" tabindex="-1" aria-labelledby="createEventModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal fade" id="createEventModal" tabindex="-1" aria-labelledby="createEventModalLabel"
+         aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content modal-surface">
                 <div class="modal-header">
@@ -89,23 +88,24 @@
                         <span class="eyebrow">Event service</span>
                         <h2 class="modal-title h4 mt-1 mb-0" id="createEventModalLabel">Create Event</h2>
                     </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    @if (!string.IsNullOrWhiteSpace(Model.FormError))
-                    {
+                    @if (!string.IsNullOrWhiteSpace(Model.FormError)) {
                         <div class="alert alert-warning" role="alert">@Model.FormError</div>
                     }
 
                     <form method="post" class="row g-3" id="createEventForm">
                         <div class="col-12">
                             <label class="form-label" for="title">Title</label>
-                            <input id="title" asp-for="Title" class="form-control" placeholder="Summer concert night" />
+                            <input id="title" asp-for="Title" class="form-control" placeholder="Summer concert night"/>
                             <span class="text-danger small" asp-validation-for="Title"></span>
                         </div>
                         <div class="col-12">
                             <label class="form-label" for="description">Description</label>
-                            <textarea id="description" asp-for="Description" class="form-control" rows="4" placeholder="Write a short description for the event"></textarea>
+                            <textarea id="description" asp-for="Description" class="form-control" rows="4"
+                                      placeholder="Write a short description for the event"></textarea>
                             <span class="text-danger small" asp-validation-for="Description"></span>
                         </div>
                     </form>
@@ -118,7 +118,8 @@
         </div>
     </div>
 
-    <div class="modal fade" id="editEventModal" tabindex="-1" aria-labelledby="editEventModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal fade" id="editEventModal" tabindex="-1" aria-labelledby="editEventModalLabel" aria-hidden="true"
+         data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content modal-surface">
                 <div class="modal-header">
@@ -126,26 +127,29 @@
                         <span class="eyebrow">Event service</span>
                         <h2 class="modal-title h4 mt-1 mb-0" id="editEventModalLabel">Update Event</h2>
                     </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    @if (!string.IsNullOrWhiteSpace(Model.FormError) && Model.ShowEditModal)
-                    {
+                    @if (!string.IsNullOrWhiteSpace(Model.FormError) && Model.ShowEditModal) {
                         <div class="alert alert-warning" role="alert">@Model.FormError</div>
                     }
 
-                    <p class="page-copy mb-3">Change the title, the description, or both. Leave a field blank if you do not want to change it.</p>
+                    <p class="page-copy mb-3">Change the title, the description, or both. Leave a field blank if you do
+                        not want to change it.</p>
 
                     <form method="post" asp-page-handler="Update" class="row g-3" id="updateEventForm">
-                        <input type="hidden" asp-for="UpdateId" id="updateEventId" />
+                        <input type="hidden" asp-for="UpdateId" id="updateEventId"/>
                         <div class="col-12">
                             <label class="form-label" for="updateTitle">Title</label>
-                            <input id="updateTitle" asp-for="UpdateTitle" class="form-control" placeholder="Summer concert night" />
+                            <input id="updateTitle" asp-for="UpdateTitle" class="form-control"
+                                   placeholder="Summer concert night"/>
                             <span class="text-danger small" asp-validation-for="UpdateTitle"></span>
                         </div>
                         <div class="col-12">
                             <label class="form-label" for="updateDescription">Description</label>
-                            <textarea id="updateDescription" asp-for="UpdateDescription" class="form-control" rows="4" placeholder="Write a short description for the event"></textarea>
+                            <textarea id="updateDescription" asp-for="UpdateDescription" class="form-control" rows="4"
+                                      placeholder="Write a short description for the event"></textarea>
                             <span class="text-danger small" asp-validation-for="UpdateDescription"></span>
                         </div>
                     </form>
@@ -160,9 +164,8 @@
 </section>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-    @if (Model.ShowCreateModal)
-    {
+    <partial name="_ValidationScriptsPartial"/>
+    @if (Model.ShowCreateModal) {
         <script>
             window.addEventListener('load', function () {
                 const modalElement = document.getElementById('createEventModal');
@@ -172,8 +175,7 @@
             });
         </script>
     }
-    @if (Model.ShowEditModal)
-    {
+    @if (Model.ShowEditModal) {
         <script>
             window.addEventListener('load', function () {
                 const modalElement = document.getElementById('editEventModal');

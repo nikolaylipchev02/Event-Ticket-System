@@ -14,27 +14,27 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 
 builder.Services.AddAuthentication(options => {
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options => {
-    options.MapInboundClaims = false;
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options => {
+            options.MapInboundClaims = false;
 
-    JwtOptions jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()
-                            ?? throw new InvalidOperationException("JWT configuration was not found");
+            JwtOptions jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()
+                                    ?? throw new InvalidOperationException("JWT configuration was not found");
 
-    options.TokenValidationParameters = new TokenValidationParameters {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtOptions.Issuer,
-        ValidAudience = jwtOptions.Audience,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key)),
-        ClockSkew = TimeSpan.FromMinutes(JWT_CLOCK_SKEW_IN_MINUTES)
-    };
-});
+            options.TokenValidationParameters = new TokenValidationParameters {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = jwtOptions.Issuer,
+                    ValidAudience = jwtOptions.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key)),
+                    ClockSkew = TimeSpan.FromMinutes(JWT_CLOCK_SKEW_IN_MINUTES)
+            };
+        });
 
 builder.Services.AddAuthorization();
 
@@ -51,8 +51,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-if (app.Environment.IsDevelopment())
-{
+if (app.Environment.IsDevelopment()) {
     app.MapOpenApi();
 }
 
@@ -63,10 +62,9 @@ return;
 
 void ConnectToPostgreSql() {
     string connectionString = builder.Configuration.GetConnectionString($"{NOTIFICATION_SERVICE_DB_CONNECTION_STRING}")
-                              ?? throw new InvalidOperationException($"Connection string '{NOTIFICATION_SERVICE_DB_CONNECTION_STRING}' was not found");
-    builder.Services.AddDbContext<NotificationServiceDbContext>(options => {
-        options.UseNpgsql(connectionString);
-    });
+                              ?? throw new InvalidOperationException(
+                                      $"Connection string '{NOTIFICATION_SERVICE_DB_CONNECTION_STRING}' was not found");
+    builder.Services.AddDbContext<NotificationServiceDbContext>(options => { options.UseNpgsql(connectionString); });
 }
 
 void BindDependencies() {

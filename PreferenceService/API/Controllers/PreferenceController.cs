@@ -11,13 +11,12 @@ namespace PreferenceService.API.Controllers;
 [ApiController]
 [Route("api/preferences")]
 public class PreferenceController : ControllerBase {
-    
     readonly IPreferenceRepository _preferenceRepository;
-    
+
     public PreferenceController(IPreferenceRepository preferenceRepository) {
         _preferenceRepository = preferenceRepository;
     }
-    
+
     [Authorize]
     [HttpGet]
     public async Task<ActionResult<Preference?>> GetPreference() {
@@ -26,17 +25,17 @@ public class PreferenceController : ControllerBase {
         if (userIdString is null) {
             return Forbid();
         }
-        
+
         Preference? preference = await _preferenceRepository.GetPreference(Guid.Parse(userIdString));
 
         if (preference is null) {
             return NotFound();
         }
-        
+
         // TODO: proper return types
         return Ok(preference);
     }
-    
+
     [Authorize]
     [HttpPatch]
     public async Task<IActionResult> UpdatePreference(UpdatePreferenceDto request) {
@@ -45,16 +44,17 @@ public class PreferenceController : ControllerBase {
         if (userIdString is null) {
             return Forbid();
         }
-        
+
         Preference? preference = await _preferenceRepository.GetSpecificPreference(Guid.Parse(userIdString));
 
         if (preference is not null) {
             // TODO: implement patching data
             await _preferenceRepository.UpdatePreference(preference);
-        } else {
+        }
+        else {
             return NotFound();
         }
-        
+
         // TODO: proper return types
         return Ok();
     }

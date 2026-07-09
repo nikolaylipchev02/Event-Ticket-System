@@ -4,8 +4,8 @@ using Microsoft.EntityFrameworkCore;
 namespace PreferenceService.Infrastructure;
 
 public class PreferenceServiceDbContext : DbContext {
-    
-    public PreferenceServiceDbContext(DbContextOptions<PreferenceServiceDbContext> options) : base(options) { }
+    public PreferenceServiceDbContext(DbContextOptions<PreferenceServiceDbContext> options) : base(options) {
+    }
 
     public DbSet<Preference> Preferences => Set<Preference>();
 

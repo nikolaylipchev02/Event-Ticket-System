@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 namespace EventService.Infrastructure;
 
 public class EventRepository : IEventRepository {
-    
     readonly EventServiceDbContext _eventServiceDbContext;
 
     public EventRepository(EventServiceDbContext eventServiceDbContext) {
@@ -25,7 +24,7 @@ public class EventRepository : IEventRepository {
         if (filter.City is not null) {
             query = query.Where(e => e.City == filter.City);
         }
-        
+
         if (filter.Category is not null) {
             query = query.Where(e => e.Category == filter.Category);
         }

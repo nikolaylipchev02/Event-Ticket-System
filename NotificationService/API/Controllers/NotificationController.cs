@@ -10,7 +10,6 @@ namespace NotificationService.API.Controllers;
 [ApiController]
 [Route("api/notifications")]
 public class NotificationController : ControllerBase {
-    
     readonly INotificationRepository _notificationRepository;
 
     public NotificationController(INotificationRepository notificationRepository) {

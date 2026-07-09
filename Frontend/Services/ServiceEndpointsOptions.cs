@@ -1,7 +1,6 @@
 namespace Frontend.Services;
 
-public sealed class ServiceEndpointsOptions
-{
+public sealed class ServiceEndpointsOptions {
     public const string SectionName = "ServiceEndpoints";
 
     public string EventService { get; set; } = "http://localhost:5076/";

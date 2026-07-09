@@ -4,7 +4,8 @@ using Microsoft.EntityFrameworkCore;
 namespace EventService.Infrastructure;
 
 public class EventServiceDbContext : DbContext {
-    public EventServiceDbContext(DbContextOptions<EventServiceDbContext> options) : base(options) { }
+    public EventServiceDbContext(DbContextOptions<EventServiceDbContext> options) : base(options) {
+    }
 
     public DbSet<Event> Events => Set<Event>();
 
@@ -22,5 +23,4 @@ public class EventServiceDbContext : DbContext {
             entity.Property(e => e.Date).IsRequired();
         });
     }
-    
 }

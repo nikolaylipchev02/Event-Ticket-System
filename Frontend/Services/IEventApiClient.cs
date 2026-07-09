@@ -2,8 +2,7 @@ using Frontend.Contracts;
 
 namespace Frontend.Services;
 
-public interface IEventApiClient
-{
+public interface IEventApiClient {
     Task<IReadOnlyList<EventItem>> GetEventsAsync(CancellationToken cancellationToken = default);
     Task<EventItem?> GetEventAsync(Guid id, CancellationToken cancellationToken = default);
     Task CreateEventAsync(CreateEventRequest request, CancellationToken cancellationToken = default);

@@ -10,8 +10,7 @@ namespace BookingService.API.Controllers;
 
 [ApiController]
 [Route("api/bookings")]
-public class BookingController :ControllerBase {
-
+public class BookingController : ControllerBase {
     readonly IBookingRepository _bookingRepository;
 
     public BookingController(IBookingRepository bookingRepository) {
@@ -26,11 +25,11 @@ public class BookingController :ControllerBase {
         if (userIdString is null) {
             return Forbid();
         }
-        
+
         // TODO: proper return types
         return Ok(await _bookingRepository.GetBookings(Guid.Parse(userIdString)));
     }
-    
+
     [Authorize]
     [HttpPost]
     public async Task<IActionResult> Book([FromBody] CreateBookingDto request) {
@@ -39,21 +38,21 @@ public class BookingController :ControllerBase {
         if (userIdString is null) {
             return Forbid();
         }
-        
+
         Booking booking = new() {
-            Id = Guid.NewGuid(),
-            UserId = Guid.Parse(userIdString),
-            EventId = request.EventId,
-            Status = BookingStatus.Booked,
-            BookedAt = DateTime.UtcNow
+                Id = Guid.NewGuid(),
+                UserId = Guid.Parse(userIdString),
+                EventId = request.EventId,
+                Status = BookingStatus.Booked,
+                BookedAt = DateTime.UtcNow
         };
-        
+
         await _bookingRepository.Book(booking);
 
         // TODO: proper return types
         return Ok();
     }
-    
+
     [Authorize]
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> CancelBooking(Guid id) {
@@ -62,9 +61,9 @@ public class BookingController :ControllerBase {
         if (userIdString is null) {
             return Forbid();
         }
-        
+
         await _bookingRepository.CancelBooking(id);
-                
+
         // TODO: proper return types
         return Ok();
     }

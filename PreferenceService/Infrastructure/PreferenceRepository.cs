@@ -6,9 +6,8 @@ using PreferenceService.Domain.Entities;
 namespace PreferenceService.Infrastructure;
 
 public class PreferenceRepository : IPreferenceRepository {
-    
     readonly PreferenceServiceDbContext _preferenceServiceDbContext;
-    
+
     public PreferenceRepository(PreferenceServiceDbContext preferenceServiceDbContext) {
         _preferenceServiceDbContext = preferenceServiceDbContext;
     }
@@ -24,7 +23,7 @@ public class PreferenceRepository : IPreferenceRepository {
 
         await _preferenceServiceDbContext.SaveChangesAsync();
     }
-    
+
     public async Task<Preference?> GetSpecificPreference(Guid userId) {
         return await _preferenceServiceDbContext.Preferences
                 .AsNoTracking()

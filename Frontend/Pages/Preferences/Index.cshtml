@@ -14,16 +14,13 @@
         <a class="btn btn-outline-light px-4" asp-page="/Index">Back to dashboard</a>
     </div>
 
-    @if (!string.IsNullOrWhiteSpace(Model.LoadError))
-    {
+    @if (!string.IsNullOrWhiteSpace(Model.LoadError)) {
         <div class="alert alert-warning" role="alert">@Model.LoadError</div>
     }
-    else if (Model.Preference is null)
-    {
+    else if (Model.Preference is null) {
         <p class="muted mb-0">No preference record exists for the signed-in user yet.</p>
     }
-    else
-    {
+    else {
         <p class="mb-0">Preference loaded for <code>@Model.Preference.UserId</code>.</p>
     }
 </section>

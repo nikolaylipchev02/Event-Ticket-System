@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 namespace BookingService.Infrastructure;
 
 public class BookingServiceDbContext : DbContext {
-    
-    public BookingServiceDbContext(DbContextOptions<BookingServiceDbContext> options) : base(options) { }
+    public BookingServiceDbContext(DbContextOptions<BookingServiceDbContext> options) : base(options) {
+    }
 
     public DbSet<Booking> Bookings => Set<Booking>();
-    
+
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         modelBuilder.Entity<Booking>(entity => {
             entity.ToTable("bookings");

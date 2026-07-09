@@ -1,10 +1,8 @@
 namespace Frontend.Contracts;
 
-public sealed class PreferenceItem
-{
+public sealed class PreferenceItem {
     public Guid UserId { get; set; }
 }
 
-public sealed class UpdatePreferenceRequest
-{
+public sealed class UpdatePreferenceRequest {
 }

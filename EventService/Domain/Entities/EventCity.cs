@@ -1,7 +1,6 @@
 namespace EventService.Domain.Entities;
 
 public enum EventCity {
-    
     Other,
     Sofia,
     Plovdiv,

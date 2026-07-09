@@ -7,9 +7,8 @@ namespace UserService.API.Controllers;
 [ApiController]
 [Route("api/users")]
 public class UserController : ControllerBase {
-
     readonly IAuthService _authService;
-    
+
     public UserController(IAuthService authService) {
         _authService = authService;
     }
@@ -24,7 +23,7 @@ public class UserController : ControllerBase {
 
         return Created($"/api/users/{response.Id}", response);
     }
-    
+
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponseDto>> Login([FromBody] LoginUserRequestDto request) {
         AuthResponseDto? response = await _authService.Login(request);
@@ -32,8 +31,7 @@ public class UserController : ControllerBase {
         if (response is null) {
             return Unauthorized();
         }
-        
+
         return Ok(response);
     }
-
 }

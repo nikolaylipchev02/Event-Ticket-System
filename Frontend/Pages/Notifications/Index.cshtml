@@ -14,19 +14,15 @@
         <a class="btn btn-outline-light px-4" asp-page="/Index">Back to dashboard</a>
     </div>
 
-    @if (!string.IsNullOrWhiteSpace(Model.LoadError))
-    {
+    @if (!string.IsNullOrWhiteSpace(Model.LoadError)) {
         <div class="alert alert-warning" role="alert">@Model.LoadError</div>
     }
-    else if (Model.Notifications.Count == 0)
-    {
+    else if (Model.Notifications.Count == 0) {
         <p class="muted mb-0">No notifications were returned for the signed-in user.</p>
     }
-    else
-    {
+    else {
         <div class="data-list">
-            @foreach (var notification in Model.Notifications)
-            {
+            @foreach (NotificationItem notification in Model.Notifications) {
                 <div class="service-item">
                     <div>
                         <strong>@notification.Message</strong>

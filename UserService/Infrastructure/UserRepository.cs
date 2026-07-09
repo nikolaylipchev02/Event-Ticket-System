@@ -5,9 +5,8 @@ using Microsoft.EntityFrameworkCore;
 namespace UserService.Infrastructure;
 
 public class UserRepository : IUserRepository {
-    
     readonly UserServiceDbContext _userServiceDbContext;
-    
+
     public UserRepository(UserServiceDbContext userServiceDbContext) {
         _userServiceDbContext = userServiceDbContext;
     }

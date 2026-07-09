@@ -5,43 +5,42 @@ using UserService.Domain.Entities;
 namespace UserService.Application.Authentication;
 
 public class AuthService : IAuthService {
-
     readonly IUserRepository _userRepository;
     readonly IPasswordHasher<User> _passwordHasher;
     readonly IJwtTokenService _jwtTokenService;
-    
+
     public AuthService(
-        IUserRepository userRepository,
-        IPasswordHasher<User> passwordHasher,
-        IJwtTokenService jwtTokenService
+            IUserRepository userRepository,
+            IPasswordHasher<User> passwordHasher,
+            IJwtTokenService jwtTokenService
     ) {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
         _jwtTokenService = jwtTokenService;
     }
-    
+
     public async Task<AuthResponseDto?> Register(RegisterUserRequestDto request) {
         string normalizedEmail = GetNormalizedEmail(request.Email);
-                
+
         User? userWithThisEmailExists = await _userRepository.GetByEmail(normalizedEmail);
-        
+
         if (userWithThisEmailExists is not null) {
             return null;
         }
-        
+
         User user = new() {
-            Id = Guid.NewGuid(),
-            Name = request.Name,
-            Email = normalizedEmail,
-            PasswordHash = string.Empty,
-            Role = request.Role,
-            CreatedAt = DateTime.UtcNow
+                Id = Guid.NewGuid(),
+                Name = request.Name,
+                Email = normalizedEmail,
+                PasswordHash = string.Empty,
+                Role = request.Role,
+                CreatedAt = DateTime.UtcNow
         };
 
         user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
 
         await _userRepository.Add(user);
-        
+
         return ToAuthResponseDto(user);
     }
 
@@ -52,7 +51,8 @@ public class AuthService : IAuthService {
             return null;
         }
 
-        PasswordVerificationResult result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
+        PasswordVerificationResult result =
+                _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
 
         return result == PasswordVerificationResult.Failed ? null : ToAuthResponseDto(user);
     }
@@ -63,11 +63,11 @@ public class AuthService : IAuthService {
 
     AuthResponseDto ToAuthResponseDto(User user) {
         return new AuthResponseDto {
-            Id = user.Id,
-            Name = user.Name,
-            Email = user.Email,
-            Role = user.Role,
-            AccessToken = _jwtTokenService.CreateToken(user)
+                Id = user.Id,
+                Name = user.Name,
+                Email = user.Email,
+                Role = user.Role,
+                AccessToken = _jwtTokenService.CreateToken(user)
         };
     }
 }

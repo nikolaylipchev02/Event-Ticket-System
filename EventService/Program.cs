@@ -16,8 +16,7 @@ WebApplication app = builder.Build();
 
 app.MapControllers();
 
-if (app.Environment.IsDevelopment())
-{
+if (app.Environment.IsDevelopment()) {
     app.MapOpenApi();
 }
 
@@ -28,10 +27,9 @@ return;
 
 void ConnectToPostgreSql() {
     string connectionString = builder.Configuration.GetConnectionString($"{EVENT_SERVICE_DB_CONNECTION_STRING}")
-                              ?? throw new InvalidOperationException($"Connection string '{EVENT_SERVICE_DB_CONNECTION_STRING}' was not found");
-    builder.Services.AddDbContext<EventServiceDbContext>(options => {
-        options.UseNpgsql(connectionString);
-    });
+                              ?? throw new InvalidOperationException(
+                                      $"Connection string '{EVENT_SERVICE_DB_CONNECTION_STRING}' was not found");
+    builder.Services.AddDbContext<EventServiceDbContext>(options => { options.UseNpgsql(connectionString); });
 }
 
 void BindDependencies() {

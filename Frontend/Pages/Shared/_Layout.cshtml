@@ -1,150 +1,170 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>@ViewData["Title"] - Event Ticket System</title>
     <script type="importmap"></script>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/Frontend.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
+    <link rel="stylesheet" href="~/Frontend.styles.css" asp-append-version="true"/>
 </head>
 <body>
-    <div class="app-shell">
-        <header class="topbar">
-            <nav class="navbar navbar-expand-lg navbar-dark">
-                <div class="container">
-                    <a class="navbar-brand brand-mark" asp-area="" asp-page="/Index">
-                        <span class="brand-mark__badge">ET</span>
-                        <span>Event Ticket System</span>
-                    </a>
-                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-                    <div class="collapse navbar-collapse" id="mainNav">
-                        <ul class="navbar-nav me-auto gap-lg-2">
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-page="/Index">Dashboard</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-page="/Events/Index">Events</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-page="/Bookings/Index">Bookings</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-page="/Preferences/Index">Preferences</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-page="/Notifications/Index">Notifications</a>
-                            </li>
-                        </ul>
-                        <div class="navbar-actions navbar-actions--guest d-flex flex-column flex-lg-row gap-2 mt-3 mt-lg-0 ms-lg-auto" data-navbar-auth-guest>
-                            <button type="button" class="btn btn-outline-light btn-sm px-3" data-auth-open="login">Login</button>
-                            <button type="button" class="btn btn-primary btn-sm px-3" data-auth-open="register">Register</button>
-                        </div>
-                        <div class="navbar-actions navbar-actions--user d-none flex-row flex-wrap align-items-center justify-content-end gap-2 mt-3 mt-lg-0 ms-lg-auto" data-navbar-auth-user>
-                            <div class="auth-status-chip">
-                                <span class="auth-status-chip__eyebrow">Signed in as</span>
-                                <div class="auth-status-chip__row">
-                                    <strong class="auth-status-chip__name" data-auth-user-name>Guest</strong>
-                                    <span class="auth-status-chip__role auth-role-pill" data-auth-user-role>User</span>
-                                </div>
+<div class="app-shell">
+    <header class="topbar">
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container">
+                <a class="navbar-brand brand-mark" asp-area="" asp-page="/Index">
+                    <span class="brand-mark__badge">ET</span>
+                    <span>Event Ticket System</span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                        aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="mainNav">
+                    <ul class="navbar-nav me-auto gap-lg-2">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-page="/Index">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-page="/Events/Index">Events</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-page="/Bookings/Index">Bookings</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-page="/Preferences/Index">Preferences</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-page="/Notifications/Index">Notifications</a>
+                        </li>
+                    </ul>
+                    <div
+                        class="navbar-actions navbar-actions--guest d-flex flex-column flex-lg-row gap-2 mt-3 mt-lg-0 ms-lg-auto"
+                        data-navbar-auth-guest>
+                        <button type="button" class="btn btn-outline-light btn-sm px-3" data-auth-open="login">Login
+                        </button>
+                        <button type="button" class="btn btn-primary btn-sm px-3" data-auth-open="register">Register
+                        </button>
+                    </div>
+                    <div
+                        class="navbar-actions navbar-actions--user d-none flex-row flex-wrap align-items-center justify-content-end gap-2 mt-3 mt-lg-0 ms-lg-auto"
+                        data-navbar-auth-user>
+                        <div class="auth-status-chip">
+                            <span class="auth-status-chip__eyebrow">Signed in as</span>
+                            <div class="auth-status-chip__row">
+                                <strong class="auth-status-chip__name" data-auth-user-name>Guest</strong>
+                                <span class="auth-status-chip__role auth-role-pill" data-auth-user-role>User</span>
                             </div>
-                            <button type="button" class="btn btn-outline-light btn-sm px-3" data-auth-logout>Log out</button>
                         </div>
+                        <button type="button" class="btn btn-outline-light btn-sm px-3" data-auth-logout>Log out
+                        </button>
                     </div>
                 </div>
-            </nav>
-        </header>
-
-        <main class="app-main">
-            <div class="container py-4 py-lg-5">
-                @RenderBody()
             </div>
-        </main>
+        </nav>
+    </header>
 
-        <footer class="app-footer">
-            <div class="container d-flex flex-column align-items-center justify-content-center gap-1 text-center">
+    <main class="app-main">
+        <div class="container py-4 py-lg-5">
+            @RenderBody()
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <div class="container d-flex flex-column align-items-center justify-content-center gap-1 text-center">
                 <span>
-                    &copy; @DateTime.Now.Year Event Ticket System - 
+                    &copy; @DateTime.Now.Year Event Ticket System -
                     <a href="https://www.linkedin.com/in/nikolay-lipchev/" target="_blank" rel="noopener noreferrer">Nikolay Lipchev</a>
                 </span>
-                <span class="text-muted">Razor Pages frontend wired to the backend services.</span>
+            <span class="text-muted">Razor Pages frontend wired to the backend services.</span>
+        </div>
+    </footer>
+</div>
+
+<div class="modal fade" id="authModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content modal-surface">
+            <div class="modal-header">
+                <div>
+                    <p class="modal-kicker mb-1">User access</p>
+                    <h2 class="modal-title h5 mb-0" data-auth-heading>Login</h2>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
             </div>
-        </footer>
-    </div>
-
-    <div class="modal fade" id="authModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content modal-surface">
-                <div class="modal-header">
-                    <div>
-                        <p class="modal-kicker mb-1">User access</p>
-                        <h2 class="modal-title h5 mb-0" data-auth-heading>Login</h2>
-                    </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-body p-4 p-md-4">
+                <div class="auth-switch btn-group w-100 mb-4" role="tablist" aria-label="Authentication mode">
+                    <button type="button" class="btn btn-outline-light auth-switch__button is-active"
+                            data-auth-tab="login">Login
+                    </button>
+                    <button type="button" class="btn btn-outline-light auth-switch__button" data-auth-tab="register">
+                        Register
+                    </button>
                 </div>
-                <div class="modal-body p-4 p-md-4">
-                    <div class="auth-switch btn-group w-100 mb-4" role="tablist" aria-label="Authentication mode">
-                        <button type="button" class="btn btn-outline-light auth-switch__button is-active" data-auth-tab="login">Login</button>
-                        <button type="button" class="btn btn-outline-light auth-switch__button" data-auth-tab="register">Register</button>
+
+                <div class="alert d-none mb-4" role="alert" data-auth-feedback></div>
+
+                <form class="auth-form" data-auth-form="login">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label" for="loginEmail">Email</label>
+                            <input class="form-control form-control-lg" id="loginEmail" name="Email" type="email"
+                                   autocomplete="email" placeholder="you@example.com" required/>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="loginPassword">Password</label>
+                            <input class="form-control form-control-lg" id="loginPassword" name="Password"
+                                   type="password" autocomplete="current-password" placeholder="Your password"
+                                   required/>
+                        </div>
                     </div>
 
-                    <div class="alert d-none mb-4" role="alert" data-auth-feedback></div>
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">Sign in</button>
+                    </div>
+                </form>
 
-                    <form class="auth-form" data-auth-form="login">
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <label class="form-label" for="loginEmail">Email</label>
-                                <input class="form-control form-control-lg" id="loginEmail" name="Email" type="email" autocomplete="email" placeholder="you@example.com" required />
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label" for="loginPassword">Password</label>
-                                <input class="form-control form-control-lg" id="loginPassword" name="Password" type="password" autocomplete="current-password" placeholder="Your password" required />
-                            </div>
+                <form class="auth-form d-none" data-auth-form="register">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label" for="registerName">Name</label>
+                            <input class="form-control form-control-lg" id="registerName" name="Name" type="text"
+                                   autocomplete="name" placeholder="Your name" required/>
                         </div>
+                        <div class="col-12">
+                            <label class="form-label" for="registerEmail">Email</label>
+                            <input class="form-control form-control-lg" id="registerEmail" name="Email" type="email"
+                                   autocomplete="email" placeholder="you@example.com" required/>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label" for="registerPassword">Password</label>
+                            <input class="form-control form-control-lg" id="registerPassword" name="Password"
+                                   type="password" autocomplete="new-password" placeholder="Create a password"
+                                   required/>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check auth-check">
+                                <input class="form-check-input" id="registerIsAdmin" name="IsAdmin" type="checkbox"/>
+                                <label class="form-check-label" for="registerIsAdmin">IsAdmin</label>
+                            </div>
+                            <div class="form-text mt-2">Tick this only for admin accounts.</div>
+                        </div>
+                    </div>
 
-                        <div class="d-grid mt-4">
-                            <button type="submit" class="btn btn-primary btn-lg">Sign in</button>
-                        </div>
-                    </form>
-
-                    <form class="auth-form d-none" data-auth-form="register">
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <label class="form-label" for="registerName">Name</label>
-                                <input class="form-control form-control-lg" id="registerName" name="Name" type="text" autocomplete="name" placeholder="Your name" required />
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label" for="registerEmail">Email</label>
-                                <input class="form-control form-control-lg" id="registerEmail" name="Email" type="email" autocomplete="email" placeholder="you@example.com" required />
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label" for="registerPassword">Password</label>
-                                <input class="form-control form-control-lg" id="registerPassword" name="Password" type="password" autocomplete="new-password" placeholder="Create a password" required />
-                            </div>
-                            <div class="col-12">
-                                <div class="form-check auth-check">
-                                    <input class="form-check-input" id="registerIsAdmin" name="IsAdmin" type="checkbox" />
-                                    <label class="form-check-label" for="registerIsAdmin">IsAdmin</label>
-                                </div>
-                                <div class="form-text mt-2">Tick this only for admin accounts.</div>
-                            </div>
-                        </div>
-
-                        <div class="d-grid mt-4">
-                            <button type="submit" class="btn btn-primary btn-lg">Create account</button>
-                        </div>
-                    </form>
-                </div>
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">Create account</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
+</div>
 
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
 
-    @await RenderSectionAsync("Scripts", required: false)
+@await RenderSectionAsync("Scripts", false)
 </body>
 </html>

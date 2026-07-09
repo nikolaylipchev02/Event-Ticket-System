@@ -1,13 +1,11 @@
 namespace Frontend.Contracts;
 
-public enum NotificationType
-{
+public enum NotificationType {
     BookingConfirmed,
     EventMatchedPreference
 }
 
-public sealed class NotificationItem
-{
+public sealed class NotificationItem {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }
     public string Message { get; set; } = string.Empty;
