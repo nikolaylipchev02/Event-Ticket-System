@@ -3,11 +3,12 @@ using Frontend.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Net;
 using System.ComponentModel.DataAnnotations;
 
 namespace Frontend.Pages.Events;
 
-public class IndexModel(IEventApiClient eventApiClient, ILogger<IndexModel> logger) : PageModel {
+public class IndexModel(IEventApiClient eventApiClient, IBookingApiClient bookingApiClient, ILogger<IndexModel> logger) : PageModel {
     [BindProperty]
     [Required]
     [StringLength(200, MinimumLength = 2)]
@@ -41,6 +42,8 @@ public class IndexModel(IEventApiClient eventApiClient, ILogger<IndexModel> logg
     [BindProperty] public string? UpdateDescription { get; set; }
 
     [BindProperty] public Guid DeleteId { get; set; }
+
+    [BindProperty] public Guid BookEventId { get; set; }
 
     public IReadOnlyList<EventItem> Events { get; private set; } = [];
 
@@ -174,6 +177,42 @@ public class IndexModel(IEventApiClient eventApiClient, ILogger<IndexModel> logg
             logger.LogWarning(exception, "Unable to delete event {EventId}.", DeleteId);
             await LoadEventsAsync(cancellationToken);
             LoadError = "The event service could not be reached.";
+            return Page();
+        }
+    }
+
+    public async Task<IActionResult> OnPostBookAsync(CancellationToken cancellationToken) {
+        if (BookEventId == Guid.Empty) {
+            await LoadEventsAsync(cancellationToken);
+            LoadError = "Please choose an event to book.";
+            return Page();
+        }
+
+        try {
+            await bookingApiClient.BookAsync(new CreateBookingRequest {
+                    EventId = BookEventId
+            }, cancellationToken);
+
+            StatusMessage = "Event booked successfully.";
+            return RedirectToPage();
+        }
+        catch (HttpRequestException exception) when (exception.StatusCode is HttpStatusCode.Unauthorized
+                                                           or HttpStatusCode.Forbidden) {
+            logger.LogWarning(exception, "Booking service rejected the JWT for event {EventId}.", BookEventId);
+            await LoadEventsAsync(cancellationToken);
+            LoadError = "Please sign in again before booking an event.";
+            return Page();
+        }
+        catch (HttpRequestException exception) when (exception.StatusCode == HttpStatusCode.NotFound) {
+            logger.LogWarning(exception, "Booking service could not find event {EventId}.", BookEventId);
+            await LoadEventsAsync(cancellationToken);
+            LoadError = "That event is no longer available to book.";
+            return Page();
+        }
+        catch (Exception exception) {
+            logger.LogWarning(exception, "Unable to book event {EventId}.", BookEventId);
+            await LoadEventsAsync(cancellationToken);
+            LoadError = "The booking service could not be reached.";
             return Page();
         }
     }

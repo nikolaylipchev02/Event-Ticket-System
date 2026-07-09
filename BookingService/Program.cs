@@ -41,6 +41,10 @@ builder.Services.AddAuthorization();
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 
+builder.Services.AddHttpClient<IEventApiClient, EventApiClient>(client => {
+    client.BaseAddress = new Uri("http://localhost:5076");
+});
+
 BindDependencies();
 ConnectToPostgreSql();
 
@@ -68,5 +72,6 @@ void ConnectToPostgreSql() {
 }
 
 void BindDependencies() {
+    builder.Services.AddScoped<IBookingService, BookingService.Application.BookingService>();
     builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 }

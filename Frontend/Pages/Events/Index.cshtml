@@ -64,6 +64,10 @@
                         <td>@eventItem.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
                         <td class="text-end">
                             <div class="d-inline-flex flex-wrap gap-2 justify-content-end">
+                                <form method="post" asp-page-handler="Book" class="d-inline">
+                                    <input type="hidden" name="BookEventId" value="@eventItem.Id"/>
+                                    <button type="submit" class="btn btn-sm btn-primary">Book</button>
+                                </form>
                                 <button type="button"
                                         class="btn btn-sm btn-outline-light"
                                         data-bs-toggle="modal"

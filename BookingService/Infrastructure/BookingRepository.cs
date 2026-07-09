@@ -24,14 +24,18 @@ public class BookingRepository : IBookingRepository {
         await _bookingServiceDbContext.SaveChangesAsync();
     }
 
-    public async Task CancelBooking(Guid id) {
-        Booking? booking = await _bookingServiceDbContext.Bookings.FirstOrDefaultAsync(b => b.Id == id);
+    public async Task CancelBooking(Guid userId, Guid bookingId) {
+        Booking? booking =
+                await _bookingServiceDbContext.Bookings.FirstOrDefaultAsync(b =>
+                        b.Id == bookingId && b.UserId == userId);
 
-        if (booking is not null) {
-            booking.Status = BookingStatus.Cancelled;
-            booking.CancelledAt = DateTime.UtcNow;
-
-            await _bookingServiceDbContext.SaveChangesAsync();
+        if (booking is null) {
+            throw new KeyNotFoundException("Booking not found");
         }
+
+        booking.Status = BookingStatus.Cancelled;
+        booking.CancelledAt = DateTime.UtcNow;
+
+        await _bookingServiceDbContext.SaveChangesAsync();
     }
 }
