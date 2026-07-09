@@ -50,17 +50,19 @@ public class BookingController : ControllerBase {
     }
 
     [Authorize]
-    [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> CancelBooking(Guid id) {
+    [HttpDelete("{bookingId:guid}")]
+    public async Task<IActionResult> CancelBooking(Guid bookingId) {
         string? userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
         if (userIdString is null) {
             return Forbid();
         }
 
-        await _bookingRepository.CancelBooking(id);
-
-        // TODO: proper return types
-        return Ok();
+        try {
+            await _bookingRepository.CancelBooking(Guid.Parse(userIdString), bookingId);
+            return Ok();
+        } catch (KeyNotFoundException) {
+            return NotFound();
+        }
     }
 }
