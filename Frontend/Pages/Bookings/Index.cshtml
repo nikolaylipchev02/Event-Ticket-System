@@ -5,12 +5,10 @@
 }
 
 <section class="surface-card">
-    <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-end mb-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center mb-4">
         <div>
             <span class="eyebrow">Booking service</span>
             <h1 class="h2 mt-2 mb-2">Bookings</h1>
-            <p class="page-copy mb-0">This page now uses your JWT to load <code>GET api/bookings</code> for the
-                signed-in user.</p>
         </div>
         <a class="btn btn-outline-light px-4" asp-page="/Index">Back to dashboard</a>
     </div>
@@ -27,6 +25,8 @@
                 <thead>
                 <tr>
                     <th>Event</th>
+                    <th>City</th>
+                    <th>Category</th>
                     <th>Status</th>
                     <th>Booked</th>
                 </tr>
@@ -34,7 +34,9 @@
                 <tbody>
                 @foreach (BookingItem booking in Model.Bookings) {
                     <tr>
-                        <td><code>@booking.EventId</code></td>
+                        <td>@Model.FormatEventTitle(booking.EventId)</td>
+                        <td>@Model.FormatCity(booking.EventId)</td>
+                        <td>@Model.FormatCategory(booking.EventId)</td>
                         <td>@booking.Status</td>
                         <td>@booking.BookedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
                     </tr>
