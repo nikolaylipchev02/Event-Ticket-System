@@ -70,7 +70,7 @@ namespace BookingService.Migrations
                     b.HasIndex("EventId")
                         .IsUnique();
 
-                    b.ToTable("ticketsInventory", (string)null);
+                    b.ToTable("tickets_inventory", (string)null);
                 });
 #pragma warning restore 612, 618
         }

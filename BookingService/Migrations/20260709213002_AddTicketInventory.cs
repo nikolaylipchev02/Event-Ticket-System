@@ -12,7 +12,7 @@ namespace BookingService.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "ticketsInventory",
+                name: "tickets_inventory",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -21,12 +21,12 @@ namespace BookingService.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ticketsInventory", x => x.Id);
+                    table.PrimaryKey("PK_tickets_inventory", x => x.Id);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_ticketsInventory_EventId",
-                table: "ticketsInventory",
+                name: "IX_tickets_inventory_EventId",
+                table: "tickets_inventory",
                 column: "EventId",
                 unique: true);
         }
@@ -35,7 +35,7 @@ namespace BookingService.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "ticketsInventory");
+                name: "tickets_inventory");
         }
     }
 }
