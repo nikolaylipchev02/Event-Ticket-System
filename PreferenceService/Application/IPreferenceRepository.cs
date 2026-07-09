@@ -6,4 +6,5 @@ public interface IPreferenceRepository {
     public Task CreatePreference(Preference preference);
     public Task<Preference?> GetPreference(Guid userId);
     public Task UpdatePreference(Preference preference);
+    public Task DeletePreference(Guid userId);
 }

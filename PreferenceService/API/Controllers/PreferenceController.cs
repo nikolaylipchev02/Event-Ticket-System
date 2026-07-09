@@ -70,4 +70,19 @@ public class PreferenceController : ControllerBase {
         // TODO: proper return types
         return Ok();
     }
+
+    [Authorize]
+    [HttpDelete]
+    public async Task<IActionResult> DeletePreference() {
+        string? userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+
+        if (userIdString is null) {
+            return Forbid();
+        }
+
+        await _preferenceRepository.DeletePreference(Guid.Parse(userIdString));
+
+        // TODO: proper return types
+        return Ok();
+    }
 }

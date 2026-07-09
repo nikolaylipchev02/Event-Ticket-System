@@ -27,4 +27,16 @@ public class PreferenceRepository : IPreferenceRepository {
         _preferenceServiceDbContext.Preferences.Update(preference);
         await _preferenceServiceDbContext.SaveChangesAsync();
     }
+
+    public async Task DeletePreference(Guid userId) {
+        Preference? preference = await _preferenceServiceDbContext.Preferences
+                .FirstOrDefaultAsync(p => p.UserId == userId);
+
+        if (preference is null) {
+            return;
+        }
+
+        _preferenceServiceDbContext.Preferences.Remove(preference);
+        await _preferenceServiceDbContext.SaveChangesAsync();
+    }
 }
