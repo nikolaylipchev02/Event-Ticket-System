@@ -12,6 +12,11 @@ public class PreferenceRepository : IPreferenceRepository {
         _preferenceServiceDbContext = preferenceServiceDbContext;
     }
 
+    public async Task CreatePreference(Preference preference) {
+        _preferenceServiceDbContext.Preferences.Add(preference);
+        await _preferenceServiceDbContext.SaveChangesAsync();
+    }
+
     public async Task<Preference?> GetPreference(Guid userId) {
         return await _preferenceServiceDbContext.Preferences
                 .AsNoTracking()
@@ -20,13 +25,6 @@ public class PreferenceRepository : IPreferenceRepository {
 
     public async Task UpdatePreference(Preference preference) {
         _preferenceServiceDbContext.Preferences.Update(preference);
-
         await _preferenceServiceDbContext.SaveChangesAsync();
-    }
-
-    public async Task<Preference?> GetSpecificPreference(Guid userId) {
-        return await _preferenceServiceDbContext.Preferences
-                .AsNoTracking()
-                .FirstOrDefaultAsync(e => e.UserId == userId);
     }
 }

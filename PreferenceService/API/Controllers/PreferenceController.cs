@@ -45,7 +45,7 @@ public class PreferenceController : ControllerBase {
             return Forbid();
         }
 
-        Preference? preference = await _preferenceRepository.GetSpecificPreference(Guid.Parse(userIdString));
+        Preference? preference = await _preferenceRepository.GetPreference(Guid.Parse(userIdString));
 
         if (preference is not null) {
             if (request.City is not null) {
@@ -58,7 +58,13 @@ public class PreferenceController : ControllerBase {
 
             await _preferenceRepository.UpdatePreference(preference);
         } else {
-            return NotFound();
+            Preference newPreference = new() {
+                    UserId = Guid.Parse(userIdString),
+                    City = request.City,
+                    Category = request.Category
+            };
+
+            await _preferenceRepository.CreatePreference(newPreference);
         }
 
         // TODO: proper return types
