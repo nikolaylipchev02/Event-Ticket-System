@@ -57,7 +57,7 @@ public class EventController : ControllerBase {
                 City = request.City,
                 Category = request.Category,
                 Price = request.Price,
-                Date = request.Date,
+                Date = NormalizeEventDate(request.Date),
                 CreatedAt = DateTime.UtcNow
         };
 
@@ -95,5 +95,13 @@ public class EventController : ControllerBase {
 
         // TODO: proper return types
         return Ok();
+    }
+
+    static DateTime NormalizeEventDate(DateTime date) {
+        return date.Kind switch {
+                DateTimeKind.Utc => date,
+                DateTimeKind.Local => date.ToUniversalTime(),
+                _ => DateTime.SpecifyKind(date, DateTimeKind.Local).ToUniversalTime()
+        };
     }
 }
