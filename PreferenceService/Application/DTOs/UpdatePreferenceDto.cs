@@ -1,5 +1,8 @@
+using EventService.Domain.Entities;
+
 namespace PreferenceService.Application.DTOs;
 
-// TODO: implement when data is known
 public class UpdatePreferenceDto {
+    public EventCity? City { get; set; }
+    public EventCategory? Category { get; set; }
 }

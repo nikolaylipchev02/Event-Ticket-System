@@ -48,10 +48,16 @@ public class PreferenceController : ControllerBase {
         Preference? preference = await _preferenceRepository.GetSpecificPreference(Guid.Parse(userIdString));
 
         if (preference is not null) {
-            // TODO: implement patching data
+            if (request.City is not null) {
+                preference.City = request.City;
+            }
+
+            if (request.Category is not null) {
+                preference.Category = request.Category;
+            }
+
             await _preferenceRepository.UpdatePreference(preference);
-        }
-        else {
+        } else {
             return NotFound();
         }
 
