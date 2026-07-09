@@ -45,12 +45,6 @@ public class IndexModel(IPreferenceApiClient preferenceApiClient, ILogger<IndexM
         }, "City preference updated.", "Unable to update the city preference.", cancellationToken);
     }
 
-    public async Task<IActionResult> OnPostClearCityAsync(CancellationToken cancellationToken) {
-        return await SavePreferenceAsync(new UpdatePreferenceRequest {
-                RemoveCity = true
-        }, "City preference removed.", "Unable to clear the city preference.", cancellationToken);
-    }
-
     public async Task<IActionResult> OnPostSaveCategoryAsync(CancellationToken cancellationToken) {
         if (Category is null) {
             await LoadPreferenceAsync(cancellationToken);
@@ -63,10 +57,8 @@ public class IndexModel(IPreferenceApiClient preferenceApiClient, ILogger<IndexM
         }, "Category preference updated.", "Unable to update the category preference.", cancellationToken);
     }
 
-    public async Task<IActionResult> OnPostClearCategoryAsync(CancellationToken cancellationToken) {
-        return await SavePreferenceAsync(new UpdatePreferenceRequest {
-                RemoveCategory = true
-        }, "Category preference removed.", "Unable to clear the category preference.", cancellationToken);
+    public async Task<IActionResult> OnPostDeleteAsync(CancellationToken cancellationToken) {
+        return await DeletePreferenceAsync("Preferences deleted.", "Unable to delete preferences.", cancellationToken);
     }
 
     public string FormatPreferenceValue<TEnum>(TEnum? value) where TEnum : struct, Enum {
@@ -81,6 +73,29 @@ public class IndexModel(IPreferenceApiClient preferenceApiClient, ILogger<IndexM
             string failureLogMessage, CancellationToken cancellationToken) {
         try {
             await preferenceApiClient.UpdatePreferenceAsync(request, cancellationToken);
+
+            StatusMessage = successMessage;
+            return RedirectToPage();
+        }
+        catch (HttpRequestException exception) when (exception.StatusCode is HttpStatusCode.Unauthorized
+                                                             or HttpStatusCode.Forbidden) {
+            logger.LogWarning(exception, "Preference service rejected the JWT.");
+            await LoadPreferenceAsync(cancellationToken);
+            FormError = "Your login token was rejected by the preference service. Please sign in again.";
+            return Page();
+        }
+        catch (Exception exception) {
+            logger.LogWarning(exception, failureLogMessage);
+            await LoadPreferenceAsync(cancellationToken);
+            FormError = "The preference service could not be reached.";
+            return Page();
+        }
+    }
+
+    async Task<IActionResult> DeletePreferenceAsync(string successMessage, string failureLogMessage,
+            CancellationToken cancellationToken) {
+        try {
+            await preferenceApiClient.DeletePreferenceAsync(cancellationToken);
 
             StatusMessage = successMessage;
             return RedirectToPage();

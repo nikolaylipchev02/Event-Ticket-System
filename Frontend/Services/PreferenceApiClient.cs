@@ -22,4 +22,9 @@ public sealed class PreferenceApiClient(HttpClient httpClient) : IPreferenceApiC
                 await httpClient.PatchAsJsonAsync("api/preferences", request, cancellationToken);
         response.EnsureSuccessStatusCode();
     }
+
+    public async Task DeletePreferenceAsync(CancellationToken cancellationToken = default) {
+        HttpResponseMessage response = await httpClient.DeleteAsync("api/preferences", cancellationToken);
+        response.EnsureSuccessStatusCode();
+    }
 }
