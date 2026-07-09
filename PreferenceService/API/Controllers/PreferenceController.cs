@@ -38,16 +38,20 @@ public class PreferenceController : ControllerBase {
     }
     
     [Authorize]
-    [HttpPatch("{userId:guid}")]
-    public async Task<IActionResult> UpdatePreference(Guid userId, UpdatePreferenceDto request) {
-        Preference? preference = await _preferenceRepository.GetSpecificPreference(userId);
+    [HttpPatch]
+    public async Task<IActionResult> UpdatePreference(UpdatePreferenceDto request) {
+        string? userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+
+        if (userIdString is null) {
+            return Forbid();
+        }
+        
+        Preference? preference = await _preferenceRepository.GetSpecificPreference(Guid.Parse(userIdString));
 
         if (preference is not null) {
             // TODO: implement patching data
-
             await _preferenceRepository.UpdatePreference(preference);
-        }
-        else {
+        } else {
             return NotFound();
         }
         
