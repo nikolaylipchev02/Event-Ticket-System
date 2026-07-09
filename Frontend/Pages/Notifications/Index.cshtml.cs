@@ -7,27 +7,24 @@ namespace Frontend.Pages.Notifications;
 
 public class IndexModel(INotificationApiClient notificationApiClient, ILogger<IndexModel> logger) : PageModel
 {
-    [BindProperty(SupportsGet = true)]
-    public Guid? UserId { get; set; }
-
     public IReadOnlyList<NotificationItem> Notifications { get; private set; } = [];
 
     public string? LoadError { get; private set; }
 
     public async Task OnGetAsync(CancellationToken cancellationToken)
     {
-        if (UserId is null)
-        {
-            return;
-        }
-
         try
         {
-            Notifications = await notificationApiClient.GetNotificationsAsync(UserId.Value, cancellationToken);
+            Notifications = await notificationApiClient.GetNotificationsAsync(cancellationToken);
+        }
+        catch (HttpRequestException exception) when (exception.StatusCode is System.Net.HttpStatusCode.Forbidden or System.Net.HttpStatusCode.Unauthorized)
+        {
+            logger.LogWarning(exception, "Notification service rejected the JWT.");
+            LoadError = "Your login token was rejected by the notification service. Please sign in again.";
         }
         catch (Exception exception)
         {
-            logger.LogWarning(exception, "Unable to load notifications for {UserId}.", UserId);
+            logger.LogWarning(exception, "Unable to load notifications.");
             LoadError = "The notification service could not be reached.";
         }
     }

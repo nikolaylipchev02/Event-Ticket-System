@@ -1,3 +1,6 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using PreferenceService.Application;
 using PreferenceService.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -15,27 +18,44 @@ public class PreferenceController : ControllerBase {
         _preferenceRepository = preferenceRepository;
     }
     
-    [HttpGet("{userId:guid}")]
-    public async Task<ActionResult<Preference>> GetPreference(Guid userId) {
+    [Authorize]
+    [HttpGet]
+    public async Task<ActionResult<Preference?>> GetPreference() {
+        string? userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+
+        if (userIdString is null) {
+            return Forbid();
+        }
+        
+        Preference? preference = await _preferenceRepository.GetPreference(Guid.Parse(userIdString));
+
+        if (preference is null) {
+            return NotFound();
+        }
+        
         // TODO: proper return types
-        return Ok(await _preferenceRepository.GetPreference(userId));
+        return Ok(preference);
     }
     
-    [HttpPatch("{userId:guid}")]
-    public async Task<IActionResult> UpdatePreference(Guid userId, UpdatePreferenceDto request) {
-        Preference? preference = await _preferenceRepository.GetSpecificPreference(userId);
+    [Authorize]
+    [HttpPatch]
+    public async Task<IActionResult> UpdatePreference(UpdatePreferenceDto request) {
+        string? userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+
+        if (userIdString is null) {
+            return Forbid();
+        }
+        
+        Preference? preference = await _preferenceRepository.GetSpecificPreference(Guid.Parse(userIdString));
 
         if (preference is not null) {
             // TODO: implement patching data
-
             await _preferenceRepository.UpdatePreference(preference);
-        }
-        else {
+        } else {
             return NotFound();
         }
         
         // TODO: proper return types
         return Ok();
     }
-    
 }

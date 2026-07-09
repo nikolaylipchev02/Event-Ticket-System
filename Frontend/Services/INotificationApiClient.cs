@@ -4,5 +4,5 @@ namespace Frontend.Services;
 
 public interface INotificationApiClient
 {
-    Task<IReadOnlyList<NotificationItem>> GetNotificationsAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<NotificationItem>> GetNotificationsAsync(CancellationToken cancellationToken = default);
 }

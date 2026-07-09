@@ -2,19 +2,25 @@ using Microsoft.AspNetCore.Identity;
 using UserService.Application.DTOs;
 using UserService.Domain.Entities;
 
-namespace UserService.Application.AuthService;
+namespace UserService.Application.Authentication;
 
 public class AuthService : IAuthService {
 
     readonly IUserRepository _userRepository;
     readonly IPasswordHasher<User> _passwordHasher;
+    readonly IJwtTokenService _jwtTokenService;
     
-    public AuthService(IUserRepository userRepository, IPasswordHasher<User> passwordHasher) {
+    public AuthService(
+        IUserRepository userRepository,
+        IPasswordHasher<User> passwordHasher,
+        IJwtTokenService jwtTokenService
+    ) {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
+        _jwtTokenService = jwtTokenService;
     }
     
-    public async Task<UserResponseDto?> Register(RegisterUserRequestDto request) {
+    public async Task<AuthResponseDto?> Register(RegisterUserRequestDto request) {
         string normalizedEmail = GetNormalizedEmail(request.Email);
                 
         User? userWithThisEmailExists = await _userRepository.GetByEmail(normalizedEmail);
@@ -34,12 +40,12 @@ public class AuthService : IAuthService {
 
         user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
 
-        await _userRepository.CreateUser(user);
+        await _userRepository.Add(user);
         
-        return ToResponseDto(user);
+        return ToAuthResponseDto(user);
     }
 
-    public async Task<UserResponseDto?> Login(LoginUserRequestDto request) {
+    public async Task<AuthResponseDto?> Login(LoginUserRequestDto request) {
         User? user = await _userRepository.GetByEmail(GetNormalizedEmail(request.Email));
 
         if (user is null) {
@@ -48,19 +54,20 @@ public class AuthService : IAuthService {
 
         PasswordVerificationResult result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
 
-        return result == PasswordVerificationResult.Failed ? null : ToResponseDto(user);
+        return result == PasswordVerificationResult.Failed ? null : ToAuthResponseDto(user);
     }
 
     static string GetNormalizedEmail(string email) {
         return email.Trim().ToLowerInvariant();
     }
 
-    static UserResponseDto ToResponseDto(User user) {
-        return new UserResponseDto {
+    AuthResponseDto ToAuthResponseDto(User user) {
+        return new AuthResponseDto {
             Id = user.Id,
             Name = user.Name,
             Email = user.Email,
-            Role = user.Role
+            Role = user.Role,
+            AccessToken = _jwtTokenService.CreateToken(user)
         };
     }
 }

@@ -7,12 +7,19 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddFrontendBackendClients(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<ServiceEndpointsOptions>(configuration.GetSection(ServiceEndpointsOptions.SectionName));
+        services.AddHttpContextAccessor();
+        services.AddTransient<JwtAccessTokenHandler>();
 
-        services.AddHttpClient<IEventApiClient, EventApiClient>(ConfigureEventApiClient);
-        services.AddHttpClient<IBookingApiClient, BookingApiClient>(ConfigureBookingApiClient);
-        services.AddHttpClient<IPreferenceApiClient, PreferenceApiClient>(ConfigurePreferenceApiClient);
-        services.AddHttpClient<INotificationApiClient, NotificationApiClient>(ConfigureNotificationApiClient);
-        services.AddHttpClient<IUserApiClient, UserApiClient>(ConfigureUserApiClient);
+        services.AddHttpClient<IEventApiClient, EventApiClient>(ConfigureEventApiClient)
+            .AddHttpMessageHandler<JwtAccessTokenHandler>();
+        services.AddHttpClient<IBookingApiClient, BookingApiClient>(ConfigureBookingApiClient)
+            .AddHttpMessageHandler<JwtAccessTokenHandler>();
+        services.AddHttpClient<IPreferenceApiClient, PreferenceApiClient>(ConfigurePreferenceApiClient)
+            .AddHttpMessageHandler<JwtAccessTokenHandler>();
+        services.AddHttpClient<INotificationApiClient, NotificationApiClient>(ConfigureNotificationApiClient)
+            .AddHttpMessageHandler<JwtAccessTokenHandler>();
+        services.AddHttpClient<IUserApiClient, UserApiClient>(ConfigureUserApiClient)
+            .AddHttpMessageHandler<JwtAccessTokenHandler>();
 
         return services;
     }

@@ -29,7 +29,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 id: String(parsedValue.id ?? ''),
                 name: String(parsedValue.name ?? 'Guest'),
                 email: String(parsedValue.email ?? ''),
-                role: parsedValue.role ?? 'User'
+                role: parsedValue.role ?? 'User',
+                accessToken: String(parsedValue.accessToken ?? '')
             };
         } catch {
             return null;
@@ -60,7 +61,8 @@ document.addEventListener('DOMContentLoaded', function () {
             id: String(data?.id ?? ''),
             name: String(data?.name ?? 'Guest'),
             email: String(data?.email ?? ''),
-            role: normalizeRoleLabel(data?.role)
+            role: normalizeRoleLabel(data?.role),
+            accessToken: String(data?.accessToken ?? '')
         };
     }
 
@@ -179,8 +181,17 @@ document.addEventListener('DOMContentLoaded', function () {
         setAuthMode('login');
     });
 
-    authLogoutButton?.addEventListener('click', function () {
-        persistAuthUser(null);
+    authLogoutButton?.addEventListener('click', async function () {
+        try {
+            await fetch('/api/auth/logout', {
+                method: 'POST'
+            });
+        } catch (error) {
+            console.error('Failed to log out cleanly:', error);
+        } finally {
+            persistAuthUser(null);
+            clearFeedback();
+        }
     });
 
     authForms.forEach(form => {

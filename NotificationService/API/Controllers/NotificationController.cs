@@ -1,3 +1,6 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using NotificationService.Application;
 using NotificationService.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -14,9 +17,16 @@ public class NotificationController : ControllerBase {
         _notificationRepository = notificationRepository;
     }
 
-    [HttpGet("{id:guid}")]
-    public async Task<ActionResult<List<Notification>>> GetNotifications(Guid id) {
+    [Authorize]
+    [HttpGet]
+    public async Task<ActionResult<List<Notification>>> GetNotifications() {
+        string? userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+
+        if (userIdString is null) {
+            return Forbid();
+        }
+
         // TODO: proper return types
-        return Ok(await _notificationRepository.GetNotifications(id));
+        return Ok(await _notificationRepository.GetNotifications(Guid.Parse(userIdString)));
     }
 }

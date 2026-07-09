@@ -15,6 +15,8 @@ public sealed class UserResponse
     public string Email { get; set; } = string.Empty;
 
     public UserRole Role { get; set; }
+
+    public string AccessToken { get; set; } = string.Empty;
 }
 
 public sealed class LoginUserRequest
