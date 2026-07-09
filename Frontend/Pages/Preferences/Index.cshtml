@@ -8,19 +8,91 @@
     <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-end mb-4">
         <div>
             <span class="eyebrow">Preference service</span>
-            <h1 class="h2 mt-2 mb-2">User preference</h1>
-            <p class="page-copy mb-0">Loads the signed-in user's preference record from the JWT-backed endpoint.</p>
+            <h1 class="h2 mt-2 mb-2">User preferences</h1>
+            <p class="page-copy mb-0">
+                Review your current city and category preferences, update either one independently, or clear a
+                preference when you do not want it stored anymore.
+            </p>
         </div>
         <a class="btn btn-outline-light px-4" asp-page="/Index">Back to dashboard</a>
     </div>
 
+    @if (!string.IsNullOrWhiteSpace(Model.StatusMessage)) {
+        <div class="alert alert-success" role="alert">@Model.StatusMessage</div>
+    }
+
     @if (!string.IsNullOrWhiteSpace(Model.LoadError)) {
         <div class="alert alert-warning" role="alert">@Model.LoadError</div>
     }
-    else if (Model.Preference is null) {
-        <p class="muted mb-0">No preference record exists for the signed-in user yet.</p>
+
+    @if (!string.IsNullOrWhiteSpace(Model.FormError)) {
+        <div class="alert alert-warning" role="alert">@Model.FormError</div>
     }
-    else {
-        <p class="mb-0">Preference loaded for <code>@Model.Preference.UserId</code>.</p>
-    }
+
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="info-card p-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-center">
+                    <div>
+                        <span class="section-title d-block mb-2">Current values</span>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="event-chip">City: @Model.FormatPreferenceValue(Model.Preference?.City)</span>
+                            <span class="event-chip">Category: @Model.FormatPreferenceValue(Model.Preference?.Category)</span>
+                        </div>
+                    </div>
+                    <div class="text-md-end">
+                        @if (Model.Preference is null) {
+                            <p class="muted mb-0">No preference record exists yet. Saving either field will create one.</p>
+                        }
+                        else {
+                            <p class="muted mb-0">Preference record loaded for <code>@Model.Preference.UserId</code>.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+            <div class="info-card h-100 p-4">
+                <span class="eyebrow">City preference</span>
+                <h2 class="h4 mt-2 mb-3">Update city</h2>
+                <p class="page-copy mb-4">Choose a city to save it, or remove it when you want the preference cleared.</p>
+
+                <form method="post" asp-page-handler="SaveCity" class="d-grid gap-3">
+                    <div>
+                        <label class="form-label" for="city">City</label>
+                        <select id="city" asp-for="City" asp-items="Model.CityOptions" class="form-select">
+                            <option value="">Choose a city</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary px-4">Save city</button>
+                </form>
+
+                <form method="post" asp-page-handler="ClearCity" class="mt-3">
+                    <button type="submit" class="btn btn-outline-light px-4">Remove city</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+            <div class="info-card h-100 p-4">
+                <span class="eyebrow">Category preference</span>
+                <h2 class="h4 mt-2 mb-3">Update category</h2>
+                <p class="page-copy mb-4">Choose a category to save it, or remove it when you want the preference cleared.</p>
+
+                <form method="post" asp-page-handler="SaveCategory" class="d-grid gap-3">
+                    <div>
+                        <label class="form-label" for="category">Category</label>
+                        <select id="category" asp-for="Category" asp-items="Model.CategoryOptions" class="form-select">
+                            <option value="">Choose a category</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary px-4">Save category</button>
+                </form>
+
+                <form method="post" asp-page-handler="ClearCategory" class="mt-3">
+                    <button type="submit" class="btn btn-outline-light px-4">Remove category</button>
+                </form>
+            </div>
+        </div>
 </section>
