@@ -45,15 +45,42 @@ public class PreferenceController : ControllerBase {
             return Forbid();
         }
 
-        Preference? preference = await _preferenceRepository.GetSpecificPreference(Guid.Parse(userIdString));
+        Preference? preference = await _preferenceRepository.GetPreference(Guid.Parse(userIdString));
 
         if (preference is not null) {
-            // TODO: implement patching data
+            if (request.City is not null) {
+                preference.City = request.City;
+            }
+
+            if (request.Category is not null) {
+                preference.Category = request.Category;
+            }
+
             await _preferenceRepository.UpdatePreference(preference);
+        } else {
+            Preference newPreference = new() {
+                    UserId = Guid.Parse(userIdString),
+                    City = request.City,
+                    Category = request.Category
+            };
+
+            await _preferenceRepository.CreatePreference(newPreference);
         }
-        else {
-            return NotFound();
+
+        // TODO: proper return types
+        return Ok();
+    }
+
+    [Authorize]
+    [HttpDelete]
+    public async Task<IActionResult> DeletePreference() {
+        string? userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+
+        if (userIdString is null) {
+            return Forbid();
         }
+
+        await _preferenceRepository.DeletePreference(Guid.Parse(userIdString));
 
         // TODO: proper return types
         return Ok();

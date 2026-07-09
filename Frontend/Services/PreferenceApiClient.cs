@@ -16,10 +16,15 @@ public sealed class PreferenceApiClient(HttpClient httpClient) : IPreferenceApiC
         return await response.Content.ReadFromJsonAsync<PreferenceItem>(cancellationToken);
     }
 
-    public async Task UpdatePreferenceAsync(Guid userId, UpdatePreferenceRequest request,
+    public async Task UpdatePreferenceAsync(UpdatePreferenceRequest request,
             CancellationToken cancellationToken = default) {
         HttpResponseMessage response =
-                await httpClient.PatchAsJsonAsync($"api/preferences/{userId}", request, cancellationToken);
+                await httpClient.PatchAsJsonAsync("api/preferences", request, cancellationToken);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task DeletePreferenceAsync(CancellationToken cancellationToken = default) {
+        HttpResponseMessage response = await httpClient.DeleteAsync("api/preferences", cancellationToken);
         response.EnsureSuccessStatusCode();
     }
 }
