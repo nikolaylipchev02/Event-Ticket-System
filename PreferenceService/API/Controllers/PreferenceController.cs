@@ -19,41 +19,28 @@ public class PreferenceController : ControllerBase {
     }
     
     [Authorize]
-    [HttpGet("{userId:guid}")]
-    public async Task<ActionResult<Preference>> GetPreference(Guid userId) {
+    [HttpGet]
+    public async Task<ActionResult<Preference?>> GetPreference() {
         string? userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
         if (userIdString is null) {
             return Forbid();
         }
         
-        Guid userIdGuid = Guid.Parse(userIdString);
-        
-        if (userId != userIdGuid) {
-            return Forbid();
+        Preference? preference = await _preferenceRepository.GetPreference(Guid.Parse(userIdString));
+
+        if (preference is null) {
+            return NotFound();
         }
         
         // TODO: proper return types
-        return Ok(await _preferenceRepository.GetPreference(userIdGuid));
+        return Ok(preference);
     }
     
     [Authorize]
     [HttpPatch("{userId:guid}")]
     public async Task<IActionResult> UpdatePreference(Guid userId, UpdatePreferenceDto request) {
-        string? userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
-
-        if (userIdString is null) {
-            return Forbid();
-        }
-        
-        Guid userIdGuid = Guid.Parse(userIdString);
-        
-        if (userId != userIdGuid) {
-            return Forbid();
-        }
-
-        
-        Preference? preference = await _preferenceRepository.GetSpecificPreference(userIdGuid);
+        Preference? preference = await _preferenceRepository.GetSpecificPreference(userId);
 
         if (preference is not null) {
             // TODO: implement patching data
@@ -67,5 +54,4 @@ public class PreferenceController : ControllerBase {
         // TODO: proper return types
         return Ok();
     }
-    
 }
