@@ -13,6 +13,10 @@
         <a class="btn btn-outline-light px-4" asp-page="/Index">Back to dashboard</a>
     </div>
 
+    @if (!string.IsNullOrWhiteSpace(Model.StatusMessage)) {
+        <div class="alert alert-success" role="alert">@Model.StatusMessage</div>
+    }
+
     @if (!string.IsNullOrWhiteSpace(Model.LoadError)) {
         <div class="alert alert-warning" role="alert">@Model.LoadError</div>
     }
@@ -29,6 +33,7 @@
                     <th>Category</th>
                     <th>Status</th>
                     <th>Booked</th>
+                    <th></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -39,6 +44,18 @@
                         <td>@Model.FormatCategory(booking.EventId)</td>
                         <td>@booking.Status</td>
                         <td>@booking.BookedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                        <td>
+                            @if (booking.Status == BookingStatus.Booked) {
+                                <form method="post" asp-page-handler="Cancel" class="d-inline"
+                                      onsubmit="return confirm('Cancel this booking?');">
+                                    <input type="hidden" name="bookingId" value="@booking.Id"/>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Cancel</button>
+                                </form>
+                            }
+                            else {
+                                <span class="muted small">-</span>
+                            }
+                        </td>
                     </tr>
                 }
                 </tbody>
