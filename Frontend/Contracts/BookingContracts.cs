@@ -18,6 +18,5 @@ public sealed class BookingItem
 
 public sealed class CreateBookingRequest
 {
-    public required Guid UserId { get; set; }
     public required Guid EventId { get; set; }
 }

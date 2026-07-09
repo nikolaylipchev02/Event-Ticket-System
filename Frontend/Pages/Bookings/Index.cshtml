@@ -9,33 +9,18 @@
         <div>
             <span class="eyebrow">Booking service</span>
             <h1 class="h2 mt-2 mb-2">Bookings</h1>
-            <p class="page-copy mb-0">Enter a user ID to load bookings from <code>GET api/bookings</code>.</p>
+            <p class="page-copy mb-0">This page now uses your JWT to load <code>GET api/bookings</code> for the signed-in user.</p>
         </div>
         <a class="btn btn-outline-light px-4" asp-page="/Index">Back to dashboard</a>
     </div>
-
-    <form method="get" class="row g-3 mb-4">
-        <div class="col-12 col-lg-8">
-            <label class="form-label" for="userId">User ID</label>
-            <input id="userId" name="UserId" value="@Model.UserId" class="form-control" placeholder="00000000-0000-0000-0000-000000000000" />
-            <div class="form-text">The backend currently uses a GUID query string for this endpoint.</div>
-        </div>
-        <div class="col-12 col-lg-4 d-flex align-items-end">
-            <button class="btn btn-primary w-100" type="submit">Load bookings</button>
-        </div>
-    </form>
 
     @if (!string.IsNullOrWhiteSpace(Model.LoadError))
     {
         <div class="alert alert-warning" role="alert">@Model.LoadError</div>
     }
-    else if (Model.UserId is null)
-    {
-        <p class="muted mb-0">Bookings will appear after you submit a user ID.</p>
-    }
     else if (Model.Bookings.Count == 0)
     {
-        <p class="muted mb-0">No bookings were returned for this user.</p>
+        <p class="muted mb-0">No bookings were returned for your account.</p>
     }
     else
     {

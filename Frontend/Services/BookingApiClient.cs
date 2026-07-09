@@ -5,9 +5,9 @@ namespace Frontend.Services;
 
 public sealed class BookingApiClient(HttpClient httpClient) : IBookingApiClient
 {
-    public async Task<IReadOnlyList<BookingItem>> GetBookingsAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<BookingItem>> GetBookingsAsync(CancellationToken cancellationToken = default)
     {
-        List<BookingItem>? bookings = await httpClient.GetFromJsonAsync<List<BookingItem>>($"api/bookings?userId={userId}", cancellationToken);
+        List<BookingItem>? bookings = await httpClient.GetFromJsonAsync<List<BookingItem>>("api/bookings", cancellationToken);
         return bookings ?? [];
     }
 
