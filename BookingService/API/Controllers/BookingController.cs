@@ -12,9 +12,11 @@ namespace BookingService.API.Controllers;
 [Route("api/bookings")]
 public class BookingController : ControllerBase {
     readonly IBookingRepository _bookingRepository;
+    readonly IBookingService _bookingService;
 
-    public BookingController(IBookingRepository bookingRepository) {
+    public BookingController(IBookingRepository bookingRepository, IBookingService bookingService) {
         _bookingRepository = bookingRepository;
+        _bookingService = bookingService;
     }
 
     [Authorize]
@@ -39,18 +41,12 @@ public class BookingController : ControllerBase {
             return Forbid();
         }
 
-        Booking booking = new() {
-                Id = Guid.NewGuid(),
-                UserId = Guid.Parse(userIdString),
-                EventId = request.EventId,
-                Status = BookingStatus.Booked,
-                BookedAt = DateTime.UtcNow
-        };
-
-        await _bookingRepository.Book(booking);
-
-        // TODO: proper return types
-        return Ok();
+        try {
+            await _bookingService.Book(Guid.Parse(userIdString), request.EventId);
+            return Ok();
+        } catch (KeyNotFoundException) {
+            return NotFound();
+        }
     }
 
     [Authorize]
