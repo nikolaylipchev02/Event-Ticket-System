@@ -54,10 +54,10 @@ public class BookingServiceDbContext : DbContext {
             entity.HasKey(message => message.Id);
 
             entity.Property(message => message.Topic).IsRequired();
-            entity.Property(message => message.MessageType).HasConversion<string>().IsRequired();
+            entity.Property(message => message.MessageType).IsRequired();
             entity.Property(message => message.Payload).IsRequired();
             entity.Property(message => message.MessageKey).IsRequired();
-            entity.Property(message => message.OccurredAtUtc).IsRequired();
+            entity.Property(message => message.OccurredAt).IsRequired();
             entity.Property(message => message.RetryCount).IsRequired();
         });
     }

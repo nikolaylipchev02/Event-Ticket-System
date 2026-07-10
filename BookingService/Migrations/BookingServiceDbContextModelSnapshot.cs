@@ -97,14 +97,14 @@ namespace BookingService.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("OccurredAtUtc")
+                    b.Property<DateTime>("OccurredAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Payload")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTime?>("PublishedAtUtc")
+                    b.Property<DateTime?>("PublishedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("RetryCount")

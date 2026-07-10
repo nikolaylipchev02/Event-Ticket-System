@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BookingService.Migrations
 {
     [DbContext(typeof(BookingServiceDbContext))]
-    [Migration("20260710195603_AddOutboxMessages")]
+    [Migration("20260710204707_AddOutboxMessages")]
     partial class AddOutboxMessages
     {
         /// <inheritdoc />
@@ -100,14 +100,14 @@ namespace BookingService.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("OccurredAtUtc")
+                    b.Property<DateTime>("OccurredAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Payload")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTime?>("PublishedAtUtc")
+                    b.Property<DateTime?>("PublishedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("RetryCount")
