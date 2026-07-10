@@ -22,7 +22,7 @@ public class BookingServiceDbContext : DbContext {
         });
 
         modelBuilder.Entity<TicketInventory>(entity => {
-            entity.ToTable("ticketsInventory");
+            entity.ToTable("tickets_inventory");
 
             entity.HasKey(ticket => ticket.Id);
 
