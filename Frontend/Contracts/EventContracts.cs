@@ -41,6 +41,7 @@ public sealed class EventItem {
     public decimal Price { get; set; }
     public DateTime Date { get; set; }
     public DateTime CreatedAt { get; set; }
+    public int TotalTickets { get; set; }
 }
 
 public sealed class CreateEventRequest {
@@ -50,6 +51,7 @@ public sealed class CreateEventRequest {
     public required EventCategory Category { get; set; }
     public required decimal Price { get; set; }
     public required DateTime Date { get; set; }
+    public required int TotalTickets { get; set; }
 }
 
 public sealed class UpdateEventRequest {

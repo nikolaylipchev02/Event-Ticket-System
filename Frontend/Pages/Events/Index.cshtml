@@ -11,7 +11,8 @@
             <h1 class="h2 mt-2 mb-2">Event catalog</h1>
             <p class="page-copy mb-0">
                 This page is wired to <code>GET api/events</code> and now creates events with the full
-                <code>POST api/events</code> payload: title, description, city, category, price, and date.
+                <code>POST api/events</code> payload: title, description, city, category, price, date, and total
+                tickets.
             </p>
         </div>
         <div class="d-flex flex-wrap gap-2">
@@ -54,6 +55,7 @@
                                 <span class="event-chip">@Model.FormatEnumValue(eventItem.City.ToString())</span>
                                 <span class="event-chip">@Model.FormatEnumValue(eventItem.Category.ToString())</span>
                                 <span class="event-chip">@eventItem.Price.ToString("0.00")</span>
+                                <span class="event-chip">Tickets: @eventItem.TotalTickets</span>
                             </div>
                             <div class="muted small mt-2">@eventItem.Description</div>
                         </td>
@@ -154,6 +156,23 @@
                                            asp-format="{0:yyyy-MM-ddTHH:mm}"/>
                                     <span class="text-danger small" asp-validation-for="Date"></span>
                                 </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="totalTickets">Tickets available</label>
+                                    <div class="counter-shell">
+                                        <button type="button" class="counter-step-button" data-ticket-step="-1"
+                                                aria-label="Decrease tickets available">
+                                            -
+                                        </button>
+                                        <input id="totalTickets" asp-for="TotalTickets" class="form-control counter-value"
+                                               type="number" min="1" step="1" inputmode="numeric"
+                                               placeholder="250"/>
+                                        <button type="button" class="counter-step-button" data-ticket-step="1"
+                                                aria-label="Increase tickets available">
+                                            +
+                                        </button>
+                                    </div>
+                                    <span class="text-danger small" asp-validation-for="TotalTickets"></span>
+                                </div>
                             </div>
                         </div>
 
@@ -236,6 +255,36 @@
     }
     <script>
         window.addEventListener('DOMContentLoaded', function () {
+            const totalTicketsField = document.getElementById('totalTickets');
+            const counterButtons = document.querySelectorAll('[data-ticket-step]');
+
+            if (totalTicketsField instanceof HTMLInputElement) {
+                if (!totalTicketsField.value) {
+                    totalTicketsField.value = '1';
+                }
+
+                totalTicketsField.addEventListener('blur', function () {
+                    const parsedValue = parseInt(totalTicketsField.value || '0', 10);
+                    if (Number.isNaN(parsedValue) || parsedValue < 1) {
+                        totalTicketsField.value = '1';
+                    }
+                });
+            }
+
+            counterButtons.forEach(function (button) {
+                button.addEventListener('click', function () {
+                    if (!(totalTicketsField instanceof HTMLInputElement)) {
+                        return;
+                    }
+
+                    const currentValue = parseInt(totalTicketsField.value || '0', 10) || 0;
+                    const step = parseInt(button.getAttribute('data-ticket-step') || '0', 10) || 0;
+                    const nextValue = Math.max(1, currentValue + step);
+                    totalTicketsField.value = String(nextValue);
+                    totalTicketsField.focus();
+                });
+            });
+
             const editModal = document.getElementById('editEventModal');
             if (!editModal) {
                 return;

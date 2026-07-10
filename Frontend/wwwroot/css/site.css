@@ -251,6 +251,41 @@ a {
     color: var(--text-main);
 }
 
+.counter-shell {
+    display: flex;
+    align-items: stretch;
+    gap: 0.6rem;
+}
+
+.counter-value {
+    text-align: center;
+    font-weight: 700;
+}
+
+.counter-step-button {
+    width: 3rem;
+    min-width: 3rem;
+    border: 1px solid var(--border);
+    border-radius: 0.9rem;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
+    font-size: 1.15rem;
+    font-weight: 800;
+    line-height: 1;
+    transition: transform 140ms ease, background-color 140ms ease, border-color 140ms ease;
+}
+
+.counter-step-button:hover,
+.counter-step-button:focus {
+    background: rgba(255, 255, 255, 0.11);
+    border-color: rgba(255, 255, 255, 0.18);
+    transform: translateY(-1px);
+}
+
+.counter-step-button:active {
+    transform: translateY(0);
+}
+
 .hero-meta {
     display: grid;
     gap: 1rem;

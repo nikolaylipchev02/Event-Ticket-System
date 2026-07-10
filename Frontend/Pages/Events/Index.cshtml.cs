@@ -35,6 +35,10 @@ public class IndexModel(IEventApiClient eventApiClient, IBookingApiClient bookin
     [Required]
     public DateTime? Date { get; set; }
 
+    [BindProperty]
+    [Range(1, int.MaxValue, ErrorMessage = "Tickets available must be at least 1.")]
+    public int TotalTickets { get; set; } = 1;
+
     [BindProperty] public Guid UpdateId { get; set; }
 
     [BindProperty] public string? UpdateTitle { get; set; }
@@ -94,7 +98,8 @@ public class IndexModel(IEventApiClient eventApiClient, IBookingApiClient bookin
                     City = City.Value,
                     Category = Category.Value,
                     Price = Price.Value,
-                    Date = Date.Value
+                    Date = Date.Value,
+                    TotalTickets = TotalTickets
             }, cancellationToken);
 
             StatusMessage = "Event created successfully.";
