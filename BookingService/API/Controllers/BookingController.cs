@@ -46,6 +46,8 @@ public class BookingController : ControllerBase {
             return Ok();
         } catch (KeyNotFoundException) {
             return NotFound();
+        } catch (InvalidOperationException) {
+            return Conflict("No tickets available");
         }
     }
 
@@ -63,6 +65,8 @@ public class BookingController : ControllerBase {
             return Ok();
         } catch (KeyNotFoundException) {
             return NotFound();
+        } catch (InvalidOperationException) {
+            return Conflict("Booking is already cancelled");
         }
     }
 }
