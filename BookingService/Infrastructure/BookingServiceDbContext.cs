@@ -10,6 +10,7 @@ public class BookingServiceDbContext : DbContext {
     public DbSet<Booking> Bookings => Set<Booking>();
     public DbSet<TicketInventory> TicketsInventory => Set<TicketInventory>();
     public DbSet<BookingIdempotencyRecord> BookingIdempotencyRecords => Set<BookingIdempotencyRecord>();
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         modelBuilder.Entity<Booking>(entity => {
@@ -45,6 +46,19 @@ public class BookingServiceDbContext : DbContext {
             entity.Property(record => record.CreatedAt).IsRequired();
 
             entity.HasIndex(record => new { record.UserId, record.IdempotencyKey }).IsUnique();
+        });
+
+        modelBuilder.Entity<OutboxMessage>(entity => {
+            entity.ToTable("outbox_messages");
+
+            entity.HasKey(message => message.Id);
+
+            entity.Property(message => message.Topic).IsRequired();
+            entity.Property(message => message.MessageType).HasConversion<string>().IsRequired();
+            entity.Property(message => message.Payload).IsRequired();
+            entity.Property(message => message.MessageKey).IsRequired();
+            entity.Property(message => message.OccurredAtUtc).IsRequired();
+            entity.Property(message => message.RetryCount).IsRequired();
         });
     }
 }
