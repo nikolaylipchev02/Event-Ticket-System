@@ -68,6 +68,8 @@
                             <div class="d-inline-flex flex-wrap gap-2 justify-content-end">
                                 <form method="post" asp-page-handler="Book" class="d-inline">
                                     <input type="hidden" name="BookEventId" value="@eventItem.Id"/>
+                                    <input type="hidden" name="BookIdempotencyKey"
+                                           value="@Guid.NewGuid()"/>
                                     <button type="submit" class="btn btn-sm btn-primary">Book</button>
                                 </form>
                                 <button type="button"

@@ -10,8 +10,18 @@ public sealed class BookingApiClient(HttpClient httpClient) : IBookingApiClient 
         return bookings ?? [];
     }
 
-    public async Task BookAsync(CreateBookingRequest request, CancellationToken cancellationToken = default) {
-        HttpResponseMessage response = await httpClient.PostAsJsonAsync("api/bookings", request, cancellationToken);
+    public async Task BookAsync(CreateBookingRequest request, string idempotencyKey,
+            CancellationToken cancellationToken = default) {
+        if (string.IsNullOrWhiteSpace(idempotencyKey)) {
+            throw new ArgumentException("An idempotency key is required.", nameof(idempotencyKey));
+        }
+
+        using HttpRequestMessage httpRequest = new(HttpMethod.Post, "api/bookings") {
+                Content = JsonContent.Create(request)
+        };
+        httpRequest.Headers.TryAddWithoutValidation("Idempotency-Key", idempotencyKey);
+
+        HttpResponseMessage response = await httpClient.SendAsync(httpRequest, cancellationToken);
         response.EnsureSuccessStatusCode();
     }
 

@@ -48,6 +48,7 @@ public class IndexModel(IEventApiClient eventApiClient, IBookingApiClient bookin
     [BindProperty] public Guid DeleteId { get; set; }
 
     [BindProperty] public Guid BookEventId { get; set; }
+    [BindProperty] public string? BookIdempotencyKey { get; set; }
 
     public IReadOnlyList<EventItem> Events { get; private set; } = [];
 
@@ -193,10 +194,16 @@ public class IndexModel(IEventApiClient eventApiClient, IBookingApiClient bookin
             return Page();
         }
 
+        if (string.IsNullOrWhiteSpace(BookIdempotencyKey)) {
+            await LoadEventsAsync(cancellationToken);
+            LoadError = "The booking form is missing its idempotency key. Please try again.";
+            return Page();
+        }
+
         try {
             await bookingApiClient.BookAsync(new CreateBookingRequest {
                     EventId = BookEventId
-            }, cancellationToken);
+            }, BookIdempotencyKey, cancellationToken);
 
             StatusMessage = "Event booked successfully.";
             return RedirectToPage();
