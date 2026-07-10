@@ -47,6 +47,15 @@ public class BookingRepository : IBookingRepository {
 
             _bookingServiceDbContext.Bookings.Add(booking);
 
+            _bookingServiceDbContext.BookingIdempotencyRecords.Add(new BookingIdempotencyRecord {
+                    Id = Guid.NewGuid(),
+                    UserId = userId,
+                    IdempotencyKey = idempotencyKey,
+                    EventId = booking.EventId,
+                    BookingId = booking.Id,
+                    CreatedAt = DateTime.UtcNow
+            });
+
             await _bookingServiceDbContext.SaveChangesAsync();
             await transaction.CommitAsync();
 
