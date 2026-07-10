@@ -1,6 +1,8 @@
 using BookingService.Application;
 using BookingService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql;
 
 namespace BookingService.Infrastructure;
 
@@ -18,24 +20,94 @@ public class BookingRepository : IBookingRepository {
                 .ToListAsync();
     }
 
-    public async Task Book(Booking booking) {
-        _bookingServiceDbContext.Bookings.Add(booking);
+    public async Task<BookingIdempotencyRecord?> GetSpecificBookingRecord(Guid userId, string idempotencyKey) {
+        return await _bookingServiceDbContext.BookingIdempotencyRecords
+                .AsNoTracking()
+                .Where(record => record.UserId == userId && record.IdempotencyKey == idempotencyKey)
+                .SingleOrDefaultAsync();
+    }
 
-        await _bookingServiceDbContext.SaveChangesAsync();
+    public async Task<Guid> Book(Booking booking, Guid userId, string idempotencyKey) {
+        await using IDbContextTransaction transaction = await _bookingServiceDbContext.Database.BeginTransactionAsync();
+
+        try {
+            TicketInventory? ticketInventory = await _bookingServiceDbContext.TicketsInventory
+                    .FromSql($"""SELECT * FROM "tickets_inventory" WHERE "EventId" = {booking.EventId} FOR UPDATE""")
+                    .SingleOrDefaultAsync();
+
+            if (ticketInventory is null) {
+                throw new KeyNotFoundException("Event inventory not found");
+            }
+
+            if (ticketInventory.RemainingTickets <= 0) {
+                throw new InvalidOperationException("No tickets available");
+            }
+
+            ticketInventory.RemainingTickets--;
+
+            _bookingServiceDbContext.Bookings.Add(booking);
+
+            _bookingServiceDbContext.BookingIdempotencyRecords.Add(new BookingIdempotencyRecord {
+                    Id = Guid.NewGuid(),
+                    UserId = userId,
+                    IdempotencyKey = idempotencyKey,
+                    EventId = booking.EventId,
+                    BookingId = booking.Id,
+                    CreatedAt = DateTime.UtcNow
+            });
+
+            await _bookingServiceDbContext.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return booking.Id;
+        } catch (DbUpdateException e) when (IsUniqueViolation(e)) {
+            await transaction.RollbackAsync();
+
+            BookingIdempotencyRecord? existingBookingRecord = await GetSpecificBookingRecord(userId, idempotencyKey);
+
+            if (existingBookingRecord is null) {
+                throw;
+            }
+
+            return existingBookingRecord.EventId != booking.EventId
+                    ? throw new InvalidOperationException("Idempotency key was already used for a different event")
+                    : existingBookingRecord.BookingId;
+        }
     }
 
     public async Task CancelBooking(Guid userId, Guid bookingId) {
-        Booking? booking =
-                await _bookingServiceDbContext.Bookings.FirstOrDefaultAsync(b =>
-                        b.Id == bookingId && b.UserId == userId);
+        await using IDbContextTransaction transaction = await _bookingServiceDbContext.Database.BeginTransactionAsync();
+
+        Booking? booking = await _bookingServiceDbContext.Bookings
+                .FromSql($"""SELECT * FROM "bookings" WHERE "Id" = {bookingId} AND "UserId" = {userId} FOR UPDATE """)
+                .SingleOrDefaultAsync();
 
         if (booking is null) {
             throw new KeyNotFoundException("Booking not found");
         }
 
+        if (booking.Status == BookingStatus.Cancelled) {
+            throw new InvalidOperationException("Booking is already cancelled");
+        }
+
+        TicketInventory? ticketInventory = await _bookingServiceDbContext.TicketsInventory
+                .FromSql($"""SELECT * FROM "tickets_inventory" WHERE "EventId" = {booking.EventId} FOR UPDATE""")
+                .SingleOrDefaultAsync();
+
+        if (ticketInventory is null) {
+            throw new KeyNotFoundException("Event inventory not found");
+        }
+
         booking.Status = BookingStatus.Cancelled;
         booking.CancelledAt = DateTime.UtcNow;
 
+        ticketInventory.RemainingTickets++;
+
         await _bookingServiceDbContext.SaveChangesAsync();
+        await transaction.CommitAsync();
+    }
+
+    static bool IsUniqueViolation(DbUpdateException e) {
+        return e.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };
     }
 }

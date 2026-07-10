@@ -11,7 +11,16 @@ public class BookingService : IBookingService {
         _eventApiClient = eventApiClient;
     }
 
-    public async Task Book(Guid userId, Guid eventId) {
+    public async Task<Guid> Book(Guid userId, Guid eventId, string idempotencyKey) {
+        BookingIdempotencyRecord? existingBookingRecord =
+                await _bookingRepository.GetSpecificBookingRecord(userId, idempotencyKey);
+
+        if (existingBookingRecord is not null) {
+            return existingBookingRecord.EventId != eventId
+                    ? throw new InvalidOperationException("Idempotency key was already used for a different event")
+                    : existingBookingRecord.BookingId;
+        }
+
         bool eventExists = await _eventApiClient.EventExists(eventId);
 
         if (!eventExists) {
@@ -26,6 +35,6 @@ public class BookingService : IBookingService {
                 BookedAt = DateTime.UtcNow
         };
 
-        await _bookingRepository.Book(booking);
+        return await _bookingRepository.Book(booking, userId, idempotencyKey);
     }
 }

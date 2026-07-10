@@ -3,6 +3,7 @@ using System;
 using BookingService.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BookingService.Migrations
 {
     [DbContext(typeof(BookingServiceDbContext))]
-    partial class BookingServiceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260709220713_UpdateTicketsInventoryDbName")]
+    partial class UpdateTicketsInventoryDbName
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -48,36 +51,6 @@ namespace BookingService.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("bookings", (string)null);
-                });
-
-            modelBuilder.Entity("BookingService.Domain.Entities.BookingIdempotencyRecord", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("BookingId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("EventId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("IdempotencyKey")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId", "IdempotencyKey")
-                        .IsUnique();
-
-                    b.ToTable("booking_idempotency_records", (string)null);
                 });
 
             modelBuilder.Entity("BookingService.Domain.Entities.TicketInventory", b =>
