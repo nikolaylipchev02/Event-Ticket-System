@@ -1,3 +1,5 @@
+using SharedContracts;
+
 namespace EventService.Domain.Entities;
 
 public class Event {

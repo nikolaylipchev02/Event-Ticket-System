@@ -1,4 +1,4 @@
-namespace EventService.Domain.Entities;
+﻿namespace SharedContracts;
 
 public enum EventCity {
     Other,

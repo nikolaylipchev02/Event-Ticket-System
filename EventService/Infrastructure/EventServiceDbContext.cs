@@ -1,5 +1,6 @@
 using EventService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using SharedContracts;
 
 namespace EventService.Infrastructure;
 

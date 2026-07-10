@@ -1,4 +1,4 @@
-using EventService.Domain.Entities;
+using SharedContracts;
 
 namespace PreferenceService.Application.DTOs;
 
