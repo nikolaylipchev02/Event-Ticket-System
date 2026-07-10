@@ -1,5 +1,5 @@
 namespace BookingService.Application;
 
 public interface IBookingService {
-    Task Book(Guid userId, Guid eventId);
+    Task<Guid> Book(Guid userId, Guid eventId, string idempotencyKey);
 }

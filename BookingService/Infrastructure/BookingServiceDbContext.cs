@@ -9,6 +9,7 @@ public class BookingServiceDbContext : DbContext {
 
     public DbSet<Booking> Bookings => Set<Booking>();
     public DbSet<TicketInventory> TicketsInventory => Set<TicketInventory>();
+    public DbSet<BookingIdempotencyRecord> BookingIdempotencyRecords => Set<BookingIdempotencyRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         modelBuilder.Entity<Booking>(entity => {
@@ -30,6 +31,20 @@ public class BookingServiceDbContext : DbContext {
             entity.HasIndex(ticket => ticket.EventId).IsUnique();
 
             entity.Property(ticket => ticket.RemainingTickets).IsRequired();
+        });
+
+        modelBuilder.Entity<BookingIdempotencyRecord>(entity => {
+            entity.ToTable("booking_idempotency_records");
+
+            entity.HasKey(record => record.Id);
+
+            entity.Property(record => record.UserId).IsRequired();
+            entity.Property(record => record.IdempotencyKey).IsRequired();
+            entity.Property(record => record.EventId).IsRequired();
+            entity.Property(record => record.BookingId).IsRequired();
+            entity.Property(record => record.CreatedAt).IsRequired();
+
+            entity.HasIndex(record => new { record.UserId, record.IdempotencyKey }).IsUnique();
         });
     }
 }

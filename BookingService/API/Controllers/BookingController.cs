@@ -34,20 +34,27 @@ public class BookingController : ControllerBase {
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> Book([FromBody] CreateBookingDto request) {
+    public async Task<IActionResult> Book(
+            [FromBody] CreateBookingDto request,
+            [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey
+    ) {
         string? userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
         if (userIdString is null) {
             return Forbid();
         }
 
+        if (string.IsNullOrWhiteSpace(idempotencyKey)) {
+            return BadRequest("Idempotency-Key header is required");
+        }
+
         try {
-            await _bookingService.Book(Guid.Parse(userIdString), request.EventId);
-            return Ok();
+            Guid bookingId = await _bookingService.Book(Guid.Parse(userIdString), request.EventId, idempotencyKey);
+            return Ok(new CreateBookingResponseDto { BookingId = bookingId });
         } catch (KeyNotFoundException) {
             return NotFound();
-        } catch (InvalidOperationException) {
-            return Conflict("No tickets available");
+        } catch (InvalidOperationException e) {
+            return Conflict(e.Message);
         }
     }
 

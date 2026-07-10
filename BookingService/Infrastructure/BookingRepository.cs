@@ -2,6 +2,7 @@ using BookingService.Application;
 using BookingService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql;
 
 namespace BookingService.Infrastructure;
 
@@ -19,27 +20,50 @@ public class BookingRepository : IBookingRepository {
                 .ToListAsync();
     }
 
-    public async Task Book(Booking booking) {
+    public async Task<BookingIdempotencyRecord?> GetSpecificBookingRecord(Guid userId, string idempotencyKey) {
+        return await _bookingServiceDbContext.BookingIdempotencyRecords
+                .AsNoTracking()
+                .Where(record => record.UserId == userId && record.IdempotencyKey == idempotencyKey)
+                .SingleOrDefaultAsync();
+    }
+
+    public async Task<Guid> Book(Booking booking, Guid userId, string idempotencyKey) {
         await using IDbContextTransaction transaction = await _bookingServiceDbContext.Database.BeginTransactionAsync();
 
-        TicketInventory? ticketInventory = await _bookingServiceDbContext.TicketsInventory
-                .FromSql($"""SELECT * FROM "tickets_inventory" WHERE "EventId" = {booking.EventId} FOR UPDATE""")
-                .SingleOrDefaultAsync();
+        try {
+            TicketInventory? ticketInventory = await _bookingServiceDbContext.TicketsInventory
+                    .FromSql($"""SELECT * FROM "tickets_inventory" WHERE "EventId" = {booking.EventId} FOR UPDATE""")
+                    .SingleOrDefaultAsync();
 
-        if (ticketInventory is null) {
-            throw new KeyNotFoundException("Event inventory not found");
+            if (ticketInventory is null) {
+                throw new KeyNotFoundException("Event inventory not found");
+            }
+
+            if (ticketInventory.RemainingTickets <= 0) {
+                throw new InvalidOperationException("No tickets available");
+            }
+
+            ticketInventory.RemainingTickets--;
+
+            _bookingServiceDbContext.Bookings.Add(booking);
+
+            await _bookingServiceDbContext.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return booking.Id;
+        } catch (DbUpdateException e) when (IsUniqueViolation(e)) {
+            await transaction.RollbackAsync();
+
+            BookingIdempotencyRecord? existingBookingRecord = await GetSpecificBookingRecord(userId, idempotencyKey);
+
+            if (existingBookingRecord is null) {
+                throw;
+            }
+
+            return existingBookingRecord.EventId != booking.EventId
+                    ? throw new InvalidOperationException("Idempotency key was already used for a different event")
+                    : existingBookingRecord.BookingId;
         }
-
-        if (ticketInventory.RemainingTickets <= 0) {
-            throw new InvalidOperationException("No tickets available");
-        }
-
-        ticketInventory.RemainingTickets--;
-
-        _bookingServiceDbContext.Bookings.Add(booking);
-
-        await _bookingServiceDbContext.SaveChangesAsync();
-        await transaction.CommitAsync();
     }
 
     public async Task CancelBooking(Guid userId, Guid bookingId) {
@@ -72,5 +96,9 @@ public class BookingRepository : IBookingRepository {
 
         await _bookingServiceDbContext.SaveChangesAsync();
         await transaction.CommitAsync();
+    }
+
+    static bool IsUniqueViolation(DbUpdateException e) {
+        return e.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };
     }
 }
