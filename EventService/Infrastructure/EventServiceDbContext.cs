@@ -21,6 +21,7 @@ public class EventServiceDbContext : DbContext {
             entity.Property(e => e.Category).IsRequired().HasDefaultValue(EventCategory.Other);
             entity.Property(e => e.Price).IsRequired();
             entity.Property(e => e.Date).IsRequired();
+            entity.Property(e => e.TotalTickets).IsRequired();
         });
     }
 }
