@@ -1,8 +1,10 @@
 <Solution>
-    <Project Path="BookingService/BookingService.csproj"/>
-    <Project Path="EventService/EventService.csproj"/>
-    <Project Path="Frontend/Frontend.csproj"/>
-    <Project Path="NotificationService\NotificationService.csproj"/>
-    <Project Path="PreferenceService\PreferenceService.csproj"/>
-    <Project Path="UserService/UserService.csproj"/>
+    <Project Path="BookingService/BookingService.csproj" />
+    <Project Path="EventService/EventService.csproj" />
+    <Project Path="Frontend/Frontend.csproj" />
+    <Project Path="MessagingContracts/MessagingContracts.csproj" />
+    <Project Path="NotificationService\NotificationService.csproj" />
+    <Project Path="PreferenceService\PreferenceService.csproj" />
+    <Project Path="SharedContracts/SharedContracts.csproj" />
+    <Project Path="UserService/UserService.csproj" />
 </Solution>

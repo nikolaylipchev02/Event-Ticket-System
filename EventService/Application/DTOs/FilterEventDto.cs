@@ -1,4 +1,5 @@
 using EventService.Domain.Entities;
+using SharedContracts;
 
 namespace EventService.Application.DTOs;
 

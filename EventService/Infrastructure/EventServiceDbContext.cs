@@ -1,5 +1,6 @@
 using EventService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using SharedContracts;
 
 namespace EventService.Infrastructure;
 
@@ -8,6 +9,7 @@ public class EventServiceDbContext : DbContext {
     }
 
     public DbSet<Event> Events => Set<Event>();
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         modelBuilder.Entity<Event>(entity => {
@@ -22,6 +24,19 @@ public class EventServiceDbContext : DbContext {
             entity.Property(e => e.Price).IsRequired();
             entity.Property(e => e.Date).IsRequired();
             entity.Property(e => e.TotalTickets).IsRequired();
+        });
+
+        modelBuilder.Entity<OutboxMessage>(entity => {
+            entity.ToTable("outbox_messages");
+
+            entity.HasKey(message => message.Id);
+
+            entity.Property(message => message.Topic).IsRequired();
+            entity.Property(message => message.MessageType).IsRequired();
+            entity.Property(message => message.Payload).IsRequired();
+            entity.Property(message => message.MessageKey).IsRequired();
+            entity.Property(message => message.OccurredAt).IsRequired();
+            entity.Property(message => message.RetryCount).IsRequired();
         });
     }
 }

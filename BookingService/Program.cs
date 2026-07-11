@@ -1,3 +1,4 @@
+using Confluent.Kafka;
 using System.Text;
 using BookingService.Application;
 using BookingService.Infrastructure;
@@ -10,6 +11,26 @@ const string BOOKING_SERVICE_DB_CONNECTION_STRING = "BookingServiceDbConnection"
 const int JWT_CLOCK_SKEW_IN_MINUTES = 1;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddHostedService<BookingIntegrationEventConsumerService>();
+
+builder.Services.AddSingleton<IProducer<string, string>>(sp => {
+    IConfiguration configuration = sp.GetRequiredService<IConfiguration>();
+
+    string bootstrapServers = configuration["Kafka:BootstrapServers"]
+                              ?? throw new InvalidOperationException("Kafka bootstrap servers not configured");
+
+    ProducerConfig producerConfig = new() {
+            BootstrapServers = bootstrapServers,
+            Acks = Acks.All,
+            EnableIdempotence = true,
+            LingerMs = 5
+    };
+
+    return new ProducerBuilder<string, string>(producerConfig).Build();
+});
+
+builder.Services.AddHostedService<BookingOutboxPublisherService>();
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 

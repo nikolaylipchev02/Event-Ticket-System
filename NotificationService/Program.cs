@@ -1,3 +1,4 @@
+using Confluent.Kafka;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using NotificationService.Application;
@@ -10,6 +11,8 @@ const string NOTIFICATION_SERVICE_DB_CONNECTION_STRING = "NotificationServiceDbC
 const int JWT_CLOCK_SKEW_IN_MINUTES = 1;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddHostedService<NotificationIntegrationEventConsumerService>();
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 

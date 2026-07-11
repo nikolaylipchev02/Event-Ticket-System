@@ -1,3 +1,6 @@
+using System.Text.Json;
+using SharedContracts;
+using MessagingContracts;
 using EventService.Application;
 using EventService.Application.DTOs;
 using EventService.Domain.Entities;
@@ -56,6 +59,27 @@ public class EventRepository : IEventRepository {
 
     public async Task CreateEvent(Event e) {
         _eventServiceDbContext.Events.Add(e);
+
+        EventCreatedIntegrationEvent integrationEvent = new(
+                Guid.NewGuid(),
+                e.Id,
+                e.Title,
+                e.City,
+                e.Category,
+                e.TotalTickets,
+                DateTime.UtcNow
+        );
+
+        _eventServiceDbContext.OutboxMessages.Add(new OutboxMessage {
+                Id = integrationEvent.MessageId,
+                Topic = KafkaTopics.EventCreated,
+                MessageType = nameof(EventCreatedIntegrationEvent),
+                Payload = JsonSerializer.Serialize(integrationEvent, JsonOptions),
+                MessageKey = e.Id.ToString(),
+                OccurredAt = integrationEvent.OccurredAt,
+                RetryCount = 0
+        });
+
         await _eventServiceDbContext.SaveChangesAsync();
     }
 
@@ -72,4 +96,8 @@ public class EventRepository : IEventRepository {
             await _eventServiceDbContext.SaveChangesAsync();
         }
     }
+
+    static readonly JsonSerializerOptions JsonOptions = new() {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
 }

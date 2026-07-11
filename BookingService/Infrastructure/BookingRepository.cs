@@ -1,8 +1,11 @@
+using MessagingContracts;
+using System.Text.Json;
 using BookingService.Application;
 using BookingService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql;
+using SharedContracts;
 
 namespace BookingService.Infrastructure;
 
@@ -56,6 +59,24 @@ public class BookingRepository : IBookingRepository {
                     CreatedAt = DateTime.UtcNow
             });
 
+            BookingCreatedIntegrationEvent integrationEvent = new(
+                    Guid.NewGuid(),
+                    booking.Id,
+                    userId,
+                    booking.EventId,
+                    DateTime.UtcNow
+            );
+
+            _bookingServiceDbContext.OutboxMessages.Add(new OutboxMessage {
+                    Id = integrationEvent.MessageId,
+                    Topic = KafkaTopics.BookingCreated,
+                    MessageType = nameof(BookingCreatedIntegrationEvent),
+                    Payload = JsonSerializer.Serialize(integrationEvent, JsonOptions),
+                    MessageKey = booking.Id.ToString(),
+                    OccurredAt = integrationEvent.OccurredAt,
+                    RetryCount = 0
+            });
+
             await _bookingServiceDbContext.SaveChangesAsync();
             await transaction.CommitAsync();
 
@@ -103,6 +124,24 @@ public class BookingRepository : IBookingRepository {
 
         ticketInventory.RemainingTickets++;
 
+        BookingCancelledIntegrationEvent integrationEvent = new(
+                Guid.NewGuid(),
+                booking.Id,
+                userId,
+                booking.EventId,
+                DateTime.UtcNow
+        );
+
+        _bookingServiceDbContext.OutboxMessages.Add(new OutboxMessage {
+                Id = integrationEvent.MessageId,
+                Topic = KafkaTopics.BookingCancelled,
+                MessageType = nameof(BookingCancelledIntegrationEvent),
+                Payload = JsonSerializer.Serialize(integrationEvent, JsonOptions),
+                MessageKey = booking.Id.ToString(),
+                OccurredAt = integrationEvent.OccurredAt,
+                RetryCount = 0
+        });
+
         await _bookingServiceDbContext.SaveChangesAsync();
         await transaction.CommitAsync();
     }
@@ -110,4 +149,8 @@ public class BookingRepository : IBookingRepository {
     static bool IsUniqueViolation(DbUpdateException e) {
         return e.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };
     }
+
+    static readonly JsonSerializerOptions JsonOptions = new() {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
 }
