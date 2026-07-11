@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BookingService.Migrations
 {
     [DbContext(typeof(BookingServiceDbContext))]
-    [Migration("20260710204707_AddOutboxMessages")]
+    [Migration("20260711161812_AddOutboxMessages")]
     partial class AddOutboxMessages
     {
         /// <inheritdoc />
