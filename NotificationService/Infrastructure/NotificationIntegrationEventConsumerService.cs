@@ -7,19 +7,19 @@ using NotificationService.Domain.Entities;
 
 namespace NotificationService.Infrastructure;
 
-public class IntegrationEventConsumerService : BackgroundService {
+public class NotificationIntegrationEventConsumerService : BackgroundService {
     readonly IServiceScopeFactory _scopeFactory;
     readonly IConfiguration _configuration;
-    readonly ILogger<IntegrationEventConsumerService> _logger;
+    readonly ILogger<NotificationIntegrationEventConsumerService> _logger;
 
     IConsumer<string, string>? _consumer;
 
     const string GROUP_ID = "notification-service";
 
-    public IntegrationEventConsumerService(
+    public NotificationIntegrationEventConsumerService(
             IServiceScopeFactory scopeFactory,
             IConfiguration configuration,
-            ILogger<IntegrationEventConsumerService> logger
+            ILogger<NotificationIntegrationEventConsumerService> logger
     ) {
         _scopeFactory = scopeFactory;
         _configuration = configuration;

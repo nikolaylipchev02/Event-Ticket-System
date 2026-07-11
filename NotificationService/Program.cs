@@ -12,7 +12,7 @@ const int JWT_CLOCK_SKEW_IN_MINUTES = 1;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddHostedService<IntegrationEventConsumerService>();
+builder.Services.AddHostedService<NotificationIntegrationEventConsumerService>();
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 
