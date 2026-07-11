@@ -57,6 +57,7 @@ public class OutboxPublisherService : BackgroundService {
                         message.LastError = e.Message;
 
                         _logger.LogError(
+                                e,
                                 "Failed to publish outbox message {MessageId} to topic {Topic}",
                                 message.Id,
                                 message.Topic
