@@ -135,7 +135,7 @@ public class NotificationIntegrationEventConsumerService : BackgroundService {
                 UserId = integrationEvent.UserId,
                 Message =
                         $"Your booking {integrationEvent.BookingId} for {integrationEvent.EventId} event was cancelled.",
-                Type = NotificationType.BookingConfirmed
+                Type = NotificationType.BookingCancelled
         });
 
         db.ProcessedIntegrationMessages.Add(new ProcessedIntegrationMessage {
