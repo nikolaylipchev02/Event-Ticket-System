@@ -12,6 +12,8 @@ const int JWT_CLOCK_SKEW_IN_MINUTES = 1;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddHostedService<BookingIntegrationEventConsumerService>();
+
 builder.Services.AddSingleton<IProducer<string, string>>(sp => {
     IConfiguration configuration = sp.GetRequiredService<IConfiguration>();
 
@@ -28,7 +30,7 @@ builder.Services.AddSingleton<IProducer<string, string>>(sp => {
     return new ProducerBuilder<string, string>(producerConfig).Build();
 });
 
-builder.Services.AddHostedService<OutboxPublisherService>();
+builder.Services.AddHostedService<BookingOutboxPublisherService>();
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 

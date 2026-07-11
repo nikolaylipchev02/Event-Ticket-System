@@ -24,6 +24,7 @@ public record EventCreatedIntegrationEvent(
         string Title,
         EventCity City,
         EventCategory Category,
+        int TotalTickets,
         DateTime OccurredAt
 );
 

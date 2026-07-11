@@ -1,3 +1,4 @@
+using Confluent.Kafka;
 using EventService.Application;
 using EventService.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -5,6 +6,24 @@ using Microsoft.EntityFrameworkCore;
 const string EVENT_SERVICE_DB_CONNECTION_STRING = "EventServiceDbConnection";
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSingleton<IProducer<string, string>>(sp => {
+    IConfiguration configuration = sp.GetRequiredService<IConfiguration>();
+
+    string bootstrapServers = configuration["Kafka:BootstrapServers"]
+                              ?? throw new InvalidOperationException("Kafka bootstrap servers not configured");
+
+    ProducerConfig producerConfig = new() {
+            BootstrapServers = bootstrapServers,
+            Acks = Acks.All,
+            EnableIdempotence = true,
+            LingerMs = 5
+    };
+
+    return new ProducerBuilder<string, string>(producerConfig).Build();
+});
+
+builder.Services.AddHostedService<EventOutboxPublisherService>();
 
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();

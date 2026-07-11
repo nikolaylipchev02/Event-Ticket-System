@@ -1,21 +1,21 @@
-using BookingService.Domain.Entities;
+using EventService.Domain.Entities;
 using Confluent.Kafka;
 using Microsoft.EntityFrameworkCore;
 
-namespace BookingService.Infrastructure;
+namespace EventService.Infrastructure;
 
-public class OutboxPublisherService : BackgroundService {
+public class EventOutboxPublisherService : BackgroundService {
     readonly IServiceScopeFactory _scopeFactory;
     readonly IProducer<string, string> _producer;
-    readonly ILogger<OutboxPublisherService> _logger;
+    readonly ILogger<EventOutboxPublisherService> _logger;
 
     const int BATCH_SIZE = 20;
     const int POLLING_INTERVAL_SECONDS = 2;
 
-    public OutboxPublisherService(
+    public EventOutboxPublisherService(
             IServiceScopeFactory scopeFactory,
             IProducer<string, string> producer,
-            ILogger<OutboxPublisherService> logger
+            ILogger<EventOutboxPublisherService> logger
     ) {
         _scopeFactory = scopeFactory;
         _producer = producer;
@@ -26,7 +26,7 @@ public class OutboxPublisherService : BackgroundService {
         while (!stoppingToken.IsCancellationRequested) {
             try {
                 using IServiceScope scope = _scopeFactory.CreateScope();
-                BookingServiceDbContext db = scope.ServiceProvider.GetRequiredService<BookingServiceDbContext>();
+                EventServiceDbContext db = scope.ServiceProvider.GetRequiredService<EventServiceDbContext>();
 
                 List<OutboxMessage> messages = await db.OutboxMessages
                         .Where(message => message.PublishedAt == null)

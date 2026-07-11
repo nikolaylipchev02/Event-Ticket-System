@@ -1,4 +1,4 @@
-namespace BookingService.Domain.Entities;
+namespace EventService.Domain.Entities;
 
 public class OutboxMessage {
     public Guid Id { get; set; }
