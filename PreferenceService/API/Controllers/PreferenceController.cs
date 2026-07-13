@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using SharedContracts;
 using Microsoft.AspNetCore.Authorization;
 using PreferenceService.Application;
 using PreferenceService.Domain.Entities;
@@ -34,6 +35,12 @@ public class PreferenceController : ControllerBase {
 
         // TODO: proper return types
         return Ok(preference);
+    }
+
+    [HttpGet("matching-users")]
+    public async Task<ActionResult<List<Guid>>> GetMatchingUserIds([FromQuery] EventCity city,
+            [FromQuery] EventCategory category) {
+        return Ok(await _preferenceRepository.GetMatchingUserIds(city, category));
     }
 
     [Authorize]

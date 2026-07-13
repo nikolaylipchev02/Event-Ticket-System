@@ -85,6 +85,26 @@ public class EventRepository : IEventRepository {
 
     public async Task UpdateEvent(Event e) {
         _eventServiceDbContext.Events.Update(e);
+
+        EventUpdatedIntegrationEvent integrationEvent = new(
+                Guid.NewGuid(),
+                e.Id,
+                e.Title,
+                e.City,
+                e.Category,
+                DateTime.UtcNow
+        );
+
+        _eventServiceDbContext.OutboxMessages.Add(new OutboxMessage {
+                Id = integrationEvent.MessageId,
+                Topic = KafkaTopics.EventUpdated,
+                MessageType = nameof(EventUpdatedIntegrationEvent),
+                Payload = JsonSerializer.Serialize(integrationEvent, JsonOptions),
+                MessageKey = e.Id.ToString(),
+                OccurredAt = integrationEvent.OccurredAt,
+                RetryCount = 0
+        });
+
         await _eventServiceDbContext.SaveChangesAsync();
     }
 

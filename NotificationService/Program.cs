@@ -1,4 +1,3 @@
-using Confluent.Kafka;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using NotificationService.Application;
@@ -43,6 +42,10 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
+
+builder.Services.AddHttpClient<IPreferenceApiClient, PreferenceApiClient>(client => {
+    client.BaseAddress = new Uri("http://localhost:5176");
+});
 
 BindDependencies();
 ConnectToPostgreSql();
