@@ -3,6 +3,7 @@ using SharedContracts;
 using Confluent.Kafka;
 using MessagingContracts;
 using Microsoft.EntityFrameworkCore;
+using NotificationService.Application;
 using NotificationService.Domain.Entities;
 
 namespace NotificationService.Infrastructure;
@@ -11,6 +12,7 @@ public class NotificationIntegrationEventConsumerService : BackgroundService {
     readonly IServiceScopeFactory _scopeFactory;
     readonly IConfiguration _configuration;
     readonly ILogger<NotificationIntegrationEventConsumerService> _logger;
+    readonly IPreferenceApiClient _preferenceApiClient;
 
     IConsumer<string, string>? _consumer;
 
@@ -19,11 +21,13 @@ public class NotificationIntegrationEventConsumerService : BackgroundService {
     public NotificationIntegrationEventConsumerService(
             IServiceScopeFactory scopeFactory,
             IConfiguration configuration,
-            ILogger<NotificationIntegrationEventConsumerService> logger
+            ILogger<NotificationIntegrationEventConsumerService> logger,
+            IPreferenceApiClient preferenceApiClient
     ) {
         _scopeFactory = scopeFactory;
         _configuration = configuration;
         _logger = logger;
+        _preferenceApiClient = preferenceApiClient;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
@@ -90,7 +94,7 @@ public class NotificationIntegrationEventConsumerService : BackgroundService {
         }
     }
 
-    static async Task HandleBookingCreated(NotificationServiceDbContext db, string payload,
+    async Task HandleBookingCreated(NotificationServiceDbContext db, string payload,
             CancellationToken stoppingToken) {
         BookingCreatedIntegrationEvent integrationEvent =
                 JsonSerializer.Deserialize<BookingCreatedIntegrationEvent>(payload, JsonOptions)
@@ -119,7 +123,7 @@ public class NotificationIntegrationEventConsumerService : BackgroundService {
         await db.SaveChangesAsync(stoppingToken);
     }
 
-    static async Task HandleBookingCancelled(NotificationServiceDbContext db, string payload,
+    async Task HandleBookingCancelled(NotificationServiceDbContext db, string payload,
             CancellationToken stoppingToken) {
         BookingCancelledIntegrationEvent integrationEvent =
                 JsonSerializer.Deserialize<BookingCancelledIntegrationEvent>(payload, JsonOptions)
@@ -148,7 +152,7 @@ public class NotificationIntegrationEventConsumerService : BackgroundService {
         await db.SaveChangesAsync(stoppingToken);
     }
 
-    static async Task HandleEventCreated(NotificationServiceDbContext db, string payload,
+    async Task HandleEventCreated(NotificationServiceDbContext db, string payload,
             CancellationToken stoppingToken) {
         EventCreatedIntegrationEvent integrationEvent =
                 JsonSerializer.Deserialize<EventCreatedIntegrationEvent>(payload, JsonOptions)
@@ -159,7 +163,19 @@ public class NotificationIntegrationEventConsumerService : BackgroundService {
             return;
         }
 
-        // TODO: add preference matching
+        List<Guid> matchingUserIds =
+                await _preferenceApiClient.GetMatchingUserIds(integrationEvent.City, integrationEvent.Category);
+
+        foreach (Guid userId in matchingUserIds.Distinct()) {
+            db.Notifications.Add(new Notification {
+                    Id = Guid.NewGuid(),
+                    UserId = userId,
+                    Message =
+                            $"A new {integrationEvent.Category} event was created in {integrationEvent.City}: {integrationEvent.Title}",
+                    Type = NotificationType.EventMatchedPreference,
+                    CreatedAt = DateTime.UtcNow
+            });
+        }
 
         db.ProcessedIntegrationMessages.Add(new ProcessedIntegrationMessage {
                 Id = Guid.NewGuid(),
@@ -171,7 +187,7 @@ public class NotificationIntegrationEventConsumerService : BackgroundService {
         await db.SaveChangesAsync(stoppingToken);
     }
 
-    static async Task HandleEventUpdated(NotificationServiceDbContext db, string payload,
+    async Task HandleEventUpdated(NotificationServiceDbContext db, string payload,
             CancellationToken stoppingToken) {
         EventUpdatedIntegrationEvent integrationEvent =
                 JsonSerializer.Deserialize<EventUpdatedIntegrationEvent>(payload, JsonOptions)

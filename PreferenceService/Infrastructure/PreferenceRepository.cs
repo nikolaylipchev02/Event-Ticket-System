@@ -1,7 +1,7 @@
 using PreferenceService.Application;
-// using PreferenceService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using PreferenceService.Domain.Entities;
+using SharedContracts;
 
 namespace PreferenceService.Infrastructure;
 
@@ -21,6 +21,16 @@ public class PreferenceRepository : IPreferenceRepository {
         return await _preferenceServiceDbContext.Preferences
                 .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.UserId == userId);
+    }
+
+    public async Task<List<Guid>> GetMatchingUserIds(EventCity city, EventCategory category) {
+        return await _preferenceServiceDbContext.Preferences
+                .AsNoTracking()
+                .Where(p =>
+                        (p.City == null || p.City == city) &&
+                        (p.Category == null || p.Category == category))
+                .Select(p => p.UserId)
+                .ToListAsync();
     }
 
     public async Task UpdatePreference(Preference preference) {
