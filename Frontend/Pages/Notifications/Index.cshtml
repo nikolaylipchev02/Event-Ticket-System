@@ -26,7 +26,7 @@
                 <div class="service-item">
                     <div>
                         <strong>@notification.Message</strong>
-                        <span>@notification.Type · @notification.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</span>
+                        <span>@Model.FormatNotificationType(notification.Type) · @Model.FormatCreatedAt(notification.CreatedAt)</span>
                     </div>
                     <span class="service-badge">@notification.UserId.ToString("N")[..6]</span>
                 </div>

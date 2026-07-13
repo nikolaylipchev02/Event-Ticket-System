@@ -2,6 +2,7 @@ namespace Frontend.Contracts;
 
 public enum NotificationType {
     BookingConfirmed,
+    BookingCancelled,
     EventMatchedPreference
 }
 

@@ -24,6 +24,57 @@
         </div>
     </div>
 
+    <div class="info-card p-4 mb-4">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-2 align-items-lg-center mb-3">
+            <div>
+                <span class="section-title">Filter events</span>
+                <p class="muted mb-0">Search by city, category, price, or date range using the backend filter API.</p>
+            </div>
+            @if (Model.HasActiveFilters) {
+                <a class="btn btn-outline-light btn-sm px-3" asp-page="/Events/Index">Clear filters</a>
+            }
+        </div>
+
+        <form method="get" class="row g-3">
+            <div class="col-12 col-md-6 col-lg-3">
+                <label class="form-label" for="filterCity">City</label>
+                <select id="filterCity" asp-for="FilterCity" asp-items="Model.CityOptions" class="form-select">
+                    <option value="">All cities</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-6 col-lg-3">
+                <label class="form-label" for="filterCategory">Category</label>
+                <select id="filterCategory" asp-for="FilterCategory" asp-items="Model.CategoryOptions"
+                        class="form-select">
+                    <option value="">All categories</option>
+                </select>
+            </div>
+            <div class="col-6 col-lg-2">
+                <label class="form-label" for="filterMinPrice">Min price</label>
+                <input id="filterMinPrice" asp-for="FilterMinPrice" class="form-control" type="number" min="0"
+                       step="0.01" inputmode="decimal" placeholder="0.00"/>
+            </div>
+            <div class="col-6 col-lg-2">
+                <label class="form-label" for="filterMaxPrice">Max price</label>
+                <input id="filterMaxPrice" asp-for="FilterMaxPrice" class="form-control" type="number" min="0"
+                       step="0.01" inputmode="decimal" placeholder="100.00"/>
+            </div>
+            <div class="col-12 col-md-6 col-lg-3">
+                <label class="form-label" for="filterFromDate">From date</label>
+                <input id="filterFromDate" asp-for="FilterFromDate" class="form-control" type="datetime-local"
+                       asp-format="{0:yyyy-MM-ddTHH:mm}"/>
+            </div>
+            <div class="col-12 col-md-6 col-lg-3">
+                <label class="form-label" for="filterToDate">To date</label>
+                <input id="filterToDate" asp-for="FilterToDate" class="form-control" type="datetime-local"
+                       asp-format="{0:yyyy-MM-ddTHH:mm}"/>
+            </div>
+            <div class="col-12 col-lg-2 d-grid">
+                <button type="submit" class="btn btn-primary">Apply filters</button>
+            </div>
+        </form>
+    </div>
+
     @if (!string.IsNullOrWhiteSpace(Model.StatusMessage)) {
         <div class="alert alert-success" role="alert">@Model.StatusMessage</div>
     }
@@ -47,10 +98,10 @@
                 </tr>
                 </thead>
                 <tbody>
-                @foreach (EventItem eventItem in Model.Events) {
-                    <tr>
-                        <td>
-                            <strong class="d-block">@eventItem.Title</strong>
+            @foreach (EventItem eventItem in Model.Events) {
+                <tr>
+                    <td>
+                        <strong class="d-block">@eventItem.Title</strong>
                             <div class="d-flex flex-wrap gap-2 mt-2">
                                 <span class="event-chip">@Model.FormatEnumValue(eventItem.City.ToString())</span>
                                 <span class="event-chip">@Model.FormatEnumValue(eventItem.Category.ToString())</span>

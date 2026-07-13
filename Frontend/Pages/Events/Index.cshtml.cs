@@ -3,8 +3,10 @@ using Frontend.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.WebUtilities;
 using System.Net;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 
 namespace Frontend.Pages.Events;
 
@@ -50,6 +52,13 @@ public class IndexModel(IEventApiClient eventApiClient, IBookingApiClient bookin
     [BindProperty] public Guid BookEventId { get; set; }
     [BindProperty] public string? BookIdempotencyKey { get; set; }
 
+    [BindProperty(SupportsGet = true)] public EventCity? FilterCity { get; set; }
+    [BindProperty(SupportsGet = true)] public EventCategory? FilterCategory { get; set; }
+    [BindProperty(SupportsGet = true)] public decimal? FilterMinPrice { get; set; }
+    [BindProperty(SupportsGet = true)] public decimal? FilterMaxPrice { get; set; }
+    [BindProperty(SupportsGet = true)] public DateTime? FilterFromDate { get; set; }
+    [BindProperty(SupportsGet = true)] public DateTime? FilterToDate { get; set; }
+
     public IReadOnlyList<EventItem> Events { get; private set; } = [];
 
     public string? LoadError { get; private set; }
@@ -65,6 +74,13 @@ public class IndexModel(IEventApiClient eventApiClient, IBookingApiClient bookin
     public IReadOnlyList<SelectListItem> CategoryOptions { get; } = BuildEnumOptions<EventCategory>();
 
     [TempData] public string? StatusMessage { get; set; }
+
+    public bool HasActiveFilters => FilterCity is not null
+                                    || FilterCategory is not null
+                                    || FilterMinPrice is not null
+                                    || FilterMaxPrice is not null
+                                    || FilterFromDate is not null
+                                    || FilterToDate is not null;
 
     public async Task OnGetAsync(CancellationToken cancellationToken) {
         await LoadEventsAsync(cancellationToken);
@@ -104,7 +120,7 @@ public class IndexModel(IEventApiClient eventApiClient, IBookingApiClient bookin
             }, cancellationToken);
 
             StatusMessage = "Event created successfully.";
-            return RedirectToPage();
+            return Redirect(BuildCurrentPageUrl());
         }
         catch (Exception exception) {
             logger.LogWarning(exception, "Unable to create an event.");
@@ -155,7 +171,7 @@ public class IndexModel(IEventApiClient eventApiClient, IBookingApiClient bookin
             }, cancellationToken);
 
             StatusMessage = "Event updated successfully.";
-            return RedirectToPage();
+            return Redirect(BuildCurrentPageUrl());
         }
         catch (Exception exception) {
             logger.LogWarning(exception, "Unable to update event {EventId}.", UpdateId);
@@ -177,7 +193,7 @@ public class IndexModel(IEventApiClient eventApiClient, IBookingApiClient bookin
             await eventApiClient.DeleteEventAsync(DeleteId, cancellationToken);
 
             StatusMessage = "Event deleted successfully.";
-            return RedirectToPage();
+            return Redirect(BuildCurrentPageUrl());
         }
         catch (Exception exception) {
             logger.LogWarning(exception, "Unable to delete event {EventId}.", DeleteId);
@@ -206,7 +222,7 @@ public class IndexModel(IEventApiClient eventApiClient, IBookingApiClient bookin
             }, BookIdempotencyKey, cancellationToken);
 
             StatusMessage = "Event booked successfully.";
-            return RedirectToPage();
+            return Redirect(BuildCurrentPageUrl());
         }
         catch (HttpRequestException exception) when (exception.StatusCode is HttpStatusCode.Unauthorized
                                                            or HttpStatusCode.Forbidden) {
@@ -231,12 +247,83 @@ public class IndexModel(IEventApiClient eventApiClient, IBookingApiClient bookin
 
     async Task LoadEventsAsync(CancellationToken cancellationToken) {
         try {
-            Events = await eventApiClient.GetEventsAsync(cancellationToken);
+            if (!TryValidateFilters(out string? validationError)) {
+                Events = [];
+                LoadError = validationError;
+                return;
+            }
+
+            if (HasActiveFilters) {
+                Events = await eventApiClient.GetFilteredEventsAsync(new EventFilterRequest {
+                        City = FilterCity,
+                        Category = FilterCategory,
+                        MinPrice = FilterMinPrice,
+                        MaxPrice = FilterMaxPrice,
+                        FromDate = FilterFromDate,
+                        ToDate = FilterToDate
+                }, cancellationToken);
+            }
+            else {
+                Events = await eventApiClient.GetEventsAsync(cancellationToken);
+            }
+
+            LoadError = null;
         }
         catch (Exception exception) {
             logger.LogWarning(exception, "Unable to load events.");
-            LoadError = "The event service could not be reached.";
+            LoadError = HasActiveFilters
+                    ? "The filtered event search could not be reached."
+                    : "The event service could not be reached.";
         }
+    }
+
+    bool TryValidateFilters(out string? errorMessage) {
+        if (FilterMinPrice is not null && FilterMaxPrice is not null && FilterMinPrice > FilterMaxPrice) {
+            errorMessage = "Minimum price cannot be greater than maximum price.";
+            return false;
+        }
+
+        if (FilterFromDate is not null && FilterToDate is not null && FilterFromDate > FilterToDate) {
+            errorMessage = "From date cannot be later than to date.";
+            return false;
+        }
+
+        errorMessage = null;
+        return true;
+    }
+
+    string BuildCurrentPageUrl() {
+        List<KeyValuePair<string, string?>> query = [];
+
+        if (FilterCity is not null) {
+            query.Add(new KeyValuePair<string, string?>("FilterCity", FilterCity.Value.ToString()));
+        }
+
+        if (FilterCategory is not null) {
+            query.Add(new KeyValuePair<string, string?>("FilterCategory", FilterCategory.Value.ToString()));
+        }
+
+        if (FilterMinPrice is not null) {
+            query.Add(new KeyValuePair<string, string?>("FilterMinPrice",
+                    FilterMinPrice.Value.ToString(CultureInfo.InvariantCulture)));
+        }
+
+        if (FilterMaxPrice is not null) {
+            query.Add(new KeyValuePair<string, string?>("FilterMaxPrice",
+                    FilterMaxPrice.Value.ToString(CultureInfo.InvariantCulture)));
+        }
+
+        if (FilterFromDate is not null) {
+            query.Add(new KeyValuePair<string, string?>("FilterFromDate",
+                    FilterFromDate.Value.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture)));
+        }
+
+        if (FilterToDate is not null) {
+            query.Add(new KeyValuePair<string, string?>("FilterToDate",
+                    FilterToDate.Value.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture)));
+        }
+
+        return QueryHelpers.AddQueryString("/Events/Index", query);
     }
 
     static string? NormalizeUpdateValue(string? value) {
