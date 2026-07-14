@@ -129,7 +129,11 @@
                                         data-bs-target="#editEventModal"
                                         data-event-id="@eventItem.Id"
                                         data-event-title="@eventItem.Title"
-                                        data-event-description="@eventItem.Description">
+                                        data-event-description="@eventItem.Description"
+                                        data-event-city="@eventItem.City"
+                                        data-event-category="@eventItem.Category"
+                                        data-event-price="@eventItem.Price.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)"
+                                        data-event-date="@eventItem.Date.ToLocalTime().ToString("yyyy-MM-ddTHH:mm")">
                                     Update
                                 </button>
                                 <button type="button"
@@ -256,8 +260,8 @@
                         <div class="alert alert-warning" role="alert">@Model.FormError</div>
                     }
 
-                    <p class="page-copy mb-3">Change the title, the description, or both. Leave a field blank if you do
-                        not want to change it.</p>
+                    <p class="page-copy mb-3">Change any event field you want. Leave a field blank if you do not want
+                        to change it.</p>
 
                     <form method="post" asp-page-handler="Update" class="row g-3" id="updateEventForm">
                         <input type="hidden" asp-for="UpdateId" id="updateEventId"/>
@@ -272,6 +276,34 @@
                             <textarea id="updateDescription" asp-for="UpdateDescription" class="form-control" rows="4"
                                       placeholder="Write a short description for the event"></textarea>
                             <span class="text-danger small" asp-validation-for="UpdateDescription"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="updateCity">City</label>
+                            <select id="updateCity" asp-for="UpdateCity" asp-items="Model.CityOptions"
+                                    class="form-select">
+                                <option value="">Keep current city</option>
+                            </select>
+                            <span class="text-danger small" asp-validation-for="UpdateCity"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="updateCategory">Category</label>
+                            <select id="updateCategory" asp-for="UpdateCategory" asp-items="Model.CategoryOptions"
+                                    class="form-select">
+                                <option value="">Keep current category</option>
+                            </select>
+                            <span class="text-danger small" asp-validation-for="UpdateCategory"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="updatePrice">Price</label>
+                            <input id="updatePrice" asp-for="UpdatePrice" class="form-control" type="number" min="0"
+                                   step="0.01" inputmode="decimal" placeholder="25.00"/>
+                            <span class="text-danger small" asp-validation-for="UpdatePrice"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="updateDate">Date</label>
+                            <input id="updateDate" asp-for="UpdateDate" class="form-control" type="datetime-local"
+                                   asp-format="{0:yyyy-MM-ddTHH:mm}"/>
+                            <span class="text-danger small" asp-validation-for="UpdateDate"></span>
                         </div>
                     </form>
                 </div>
@@ -352,10 +384,18 @@
                 const id = button.getAttribute('data-event-id') || '';
                 const title = button.getAttribute('data-event-title') || '';
                 const description = button.getAttribute('data-event-description') || '';
+                const city = button.getAttribute('data-event-city') || '';
+                const category = button.getAttribute('data-event-category') || '';
+                const price = button.getAttribute('data-event-price') || '';
+                const date = button.getAttribute('data-event-date') || '';
 
                 const idField = document.getElementById('updateEventId');
                 const titleField = document.getElementById('updateTitle');
                 const descriptionField = document.getElementById('updateDescription');
+                const cityField = document.getElementById('updateCity');
+                const categoryField = document.getElementById('updateCategory');
+                const priceField = document.getElementById('updatePrice');
+                const dateField = document.getElementById('updateDate');
 
                 if (idField) {
                     idField.value = id;
@@ -367,6 +407,22 @@
 
                 if (descriptionField) {
                     descriptionField.value = description;
+                }
+
+                if (cityField) {
+                    cityField.value = city;
+                }
+
+                if (categoryField) {
+                    categoryField.value = category;
+                }
+
+                if (priceField) {
+                    priceField.value = price;
+                }
+
+                if (dateField) {
+                    dateField.value = date;
                 }
             });
         });

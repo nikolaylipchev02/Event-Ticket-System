@@ -47,6 +47,18 @@ public class IndexModel(IEventApiClient eventApiClient, IBookingApiClient bookin
 
     [BindProperty] public string? UpdateDescription { get; set; }
 
+    [BindProperty]
+    public EventCity? UpdateCity { get; set; }
+
+    [BindProperty]
+    public EventCategory? UpdateCategory { get; set; }
+
+    [BindProperty]
+    public decimal? UpdatePrice { get; set; }
+
+    [BindProperty]
+    public DateTime? UpdateDate { get; set; }
+
     [BindProperty] public Guid DeleteId { get; set; }
 
     [BindProperty] public Guid BookEventId { get; set; }
@@ -142,7 +154,14 @@ public class IndexModel(IEventApiClient eventApiClient, IBookingApiClient bookin
         string? normalizedTitle = NormalizeUpdateValue(UpdateTitle);
         string? normalizedDescription = NormalizeUpdateValue(UpdateDescription);
 
-        if (normalizedTitle is null && normalizedDescription is null) {
+        bool hasAnyUpdate = normalizedTitle is not null
+                            || normalizedDescription is not null
+                            || UpdateCity is not null
+                            || UpdateCategory is not null
+                            || UpdatePrice is not null
+                            || UpdateDate is not null;
+
+        if (!hasAnyUpdate) {
             await LoadEventsAsync(cancellationToken);
             FormError = "Please update at least one field.";
             ShowEditModal = true;
@@ -164,10 +183,21 @@ public class IndexModel(IEventApiClient eventApiClient, IBookingApiClient bookin
             return Page();
         }
 
+        if (UpdatePrice is not null && UpdatePrice < 0.01m) {
+            await LoadEventsAsync(cancellationToken);
+            FormError = "Price must be at least 0.01.";
+            ShowEditModal = true;
+            return Page();
+        }
+
         try {
             await eventApiClient.UpdateEventAsync(UpdateId, new UpdateEventRequest {
                     Title = normalizedTitle,
-                    Description = normalizedDescription
+                    Description = normalizedDescription,
+                    City = UpdateCity,
+                    Category = UpdateCategory,
+                    Price = UpdatePrice,
+                    Date = UpdateDate
             }, cancellationToken);
 
             StatusMessage = "Event updated successfully.";
