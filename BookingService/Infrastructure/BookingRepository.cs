@@ -71,7 +71,7 @@ public class BookingRepository : IBookingRepository {
                     Id = integrationEvent.MessageId,
                     Topic = KafkaTopics.BookingCreated,
                     MessageType = nameof(BookingCreatedIntegrationEvent),
-                    Payload = JsonSerializer.Serialize(integrationEvent, JsonOptions),
+                    Payload = JsonSerializer.Serialize(integrationEvent, SharedJsonOptions.Web),
                     MessageKey = booking.Id.ToString(),
                     OccurredAt = integrationEvent.OccurredAt,
                     RetryCount = 0
@@ -136,7 +136,7 @@ public class BookingRepository : IBookingRepository {
                 Id = integrationEvent.MessageId,
                 Topic = KafkaTopics.BookingCancelled,
                 MessageType = nameof(BookingCancelledIntegrationEvent),
-                Payload = JsonSerializer.Serialize(integrationEvent, JsonOptions),
+                Payload = JsonSerializer.Serialize(integrationEvent, SharedJsonOptions.Web),
                 MessageKey = booking.Id.ToString(),
                 OccurredAt = integrationEvent.OccurredAt,
                 RetryCount = 0
@@ -149,8 +149,4 @@ public class BookingRepository : IBookingRepository {
     static bool IsUniqueViolation(DbUpdateException e) {
         return e.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };
     }
-
-    static readonly JsonSerializerOptions JsonOptions = new() {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
 }

@@ -69,7 +69,7 @@ public class BookingIntegrationEventConsumerService : BackgroundService {
 
     async Task HandleEventCreated(ConsumeResult<string, string> result, CancellationToken stoppingToken) {
         EventCreatedIntegrationEvent integrationEvent =
-                JsonSerializer.Deserialize<EventCreatedIntegrationEvent>(result.Message.Value, JsonOptions)
+                JsonSerializer.Deserialize<EventCreatedIntegrationEvent>(result.Message.Value, SharedJsonOptions.Web)
                 ?? throw new InvalidOperationException($"Invalid {KafkaTopics.EventCreated} message");
 
         using IServiceScope scope = _scopeFactory.CreateScope();
@@ -101,8 +101,4 @@ public class BookingIntegrationEventConsumerService : BackgroundService {
         return await db.ProcessedIntegrationMessages
                 .AnyAsync(m => m.MessageId == messageId && m.MessageType == messageType, stoppingToken);
     }
-
-    static readonly JsonSerializerOptions JsonOptions = new() {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
 }

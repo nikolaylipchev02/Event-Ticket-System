@@ -30,7 +30,7 @@ public class EventRepository : IEventRepository {
             string? cachedEvents = await _cache.GetStringAsync(cacheKey);
 
             if (cachedEvents is not null) {
-                return JsonSerializer.Deserialize<List<Event>>(cachedEvents, JsonOptions) ?? [];
+                return JsonSerializer.Deserialize<List<Event>>(cachedEvents, SharedJsonOptions.Web) ?? [];
             }
         } catch (Exception e) when (IsRedisException(e)) {
             _logger.LogWarning(e, "Redis read failed for key {CacheKey}, falling back to database", cacheKey);
@@ -42,7 +42,7 @@ public class EventRepository : IEventRepository {
                 .ThenBy(e => e.Title)
                 .ToListAsync();
 
-        await TryCache(cacheKey, JsonSerializer.Serialize(events, JsonOptions), EventCacheOptions.List);
+        await TryCache(cacheKey, JsonSerializer.Serialize(events, SharedJsonOptions.Web), EventCacheOptions.List);
         return events;
     }
 
@@ -53,7 +53,7 @@ public class EventRepository : IEventRepository {
             string? cachedEvents = await _cache.GetStringAsync(cacheKey);
 
             if (cachedEvents is not null) {
-                return JsonSerializer.Deserialize<List<Event>>(cachedEvents, JsonOptions) ?? [];
+                return JsonSerializer.Deserialize<List<Event>>(cachedEvents, SharedJsonOptions.Web) ?? [];
             }
         } catch (Exception e) when (IsRedisException(e)) {
             _logger.LogWarning(e, "Redis read failed for key {CacheKey}, falling back to database", cacheKey);
@@ -90,7 +90,7 @@ public class EventRepository : IEventRepository {
                 .ThenBy(e => e.Title)
                 .ToListAsync();
 
-        await TryCache(cacheKey, JsonSerializer.Serialize(events, JsonOptions), EventCacheOptions.List);
+        await TryCache(cacheKey, JsonSerializer.Serialize(events, SharedJsonOptions.Web), EventCacheOptions.List);
 
         return events;
     }
@@ -102,7 +102,7 @@ public class EventRepository : IEventRepository {
             string? cachedEvent = await _cache.GetStringAsync(cacheKey);
 
             if (cachedEvent is not null) {
-                return JsonSerializer.Deserialize<Event>(cachedEvent, JsonOptions);
+                return JsonSerializer.Deserialize<Event>(cachedEvent, SharedJsonOptions.Web);
             }
         } catch (Exception e) when (IsRedisException(e)) {
             _logger.LogWarning(e, "Redis read failed for key {CacheKey}, falling back to database", cacheKey);
@@ -113,7 +113,7 @@ public class EventRepository : IEventRepository {
                 .FirstOrDefaultAsync(e => e.Id == id);
 
         if (existingEvent is not null) {
-            await TryCache(cacheKey, JsonSerializer.Serialize(existingEvent, JsonOptions),
+            await TryCache(cacheKey, JsonSerializer.Serialize(existingEvent, SharedJsonOptions.Web),
                     EventCacheOptions.SpecificEvent);
         }
 
@@ -137,7 +137,7 @@ public class EventRepository : IEventRepository {
                 Id = integrationEvent.MessageId,
                 Topic = KafkaTopics.EventCreated,
                 MessageType = nameof(EventCreatedIntegrationEvent),
-                Payload = JsonSerializer.Serialize(integrationEvent, JsonOptions),
+                Payload = JsonSerializer.Serialize(integrationEvent, SharedJsonOptions.Web),
                 MessageKey = e.Id.ToString(),
                 OccurredAt = integrationEvent.OccurredAt,
                 RetryCount = 0
@@ -163,7 +163,7 @@ public class EventRepository : IEventRepository {
                 Id = integrationEvent.MessageId,
                 Topic = KafkaTopics.EventUpdated,
                 MessageType = nameof(EventUpdatedIntegrationEvent),
-                Payload = JsonSerializer.Serialize(integrationEvent, JsonOptions),
+                Payload = JsonSerializer.Serialize(integrationEvent, SharedJsonOptions.Web),
                 MessageKey = e.Id.ToString(),
                 OccurredAt = integrationEvent.OccurredAt,
                 RetryCount = 0
@@ -217,10 +217,6 @@ public class EventRepository : IEventRepository {
             _logger.LogWarning(e, "Redis write failed for key {Cache Key}, continuing without cache", key);
         }
     }
-
-    static readonly JsonSerializerOptions JsonOptions = new() {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
 
     static bool IsRedisException(Exception e) {
         return e is RedisConnectionException

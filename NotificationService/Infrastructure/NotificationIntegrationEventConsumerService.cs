@@ -97,7 +97,7 @@ public class NotificationIntegrationEventConsumerService : BackgroundService {
     async Task HandleBookingCreated(NotificationServiceDbContext db, string payload,
             CancellationToken stoppingToken) {
         BookingCreatedIntegrationEvent integrationEvent =
-                JsonSerializer.Deserialize<BookingCreatedIntegrationEvent>(payload, JsonOptions)
+                JsonSerializer.Deserialize<BookingCreatedIntegrationEvent>(payload, SharedJsonOptions.Web)
                 ?? throw new InvalidOperationException($"Invalid {KafkaTopics.BookingCreated} message");
 
         if (await AlreadyProcessed(db, integrationEvent.MessageId, nameof(BookingCreatedIntegrationEvent),
@@ -126,7 +126,7 @@ public class NotificationIntegrationEventConsumerService : BackgroundService {
     async Task HandleBookingCancelled(NotificationServiceDbContext db, string payload,
             CancellationToken stoppingToken) {
         BookingCancelledIntegrationEvent integrationEvent =
-                JsonSerializer.Deserialize<BookingCancelledIntegrationEvent>(payload, JsonOptions)
+                JsonSerializer.Deserialize<BookingCancelledIntegrationEvent>(payload, SharedJsonOptions.Web)
                 ?? throw new InvalidOperationException($"Invalid {KafkaTopics.BookingCancelled} message");
 
         if (await AlreadyProcessed(db, integrationEvent.MessageId, nameof(BookingCancelledIntegrationEvent),
@@ -155,7 +155,7 @@ public class NotificationIntegrationEventConsumerService : BackgroundService {
     async Task HandleEventCreated(NotificationServiceDbContext db, string payload,
             CancellationToken stoppingToken) {
         EventCreatedIntegrationEvent integrationEvent =
-                JsonSerializer.Deserialize<EventCreatedIntegrationEvent>(payload, JsonOptions)
+                JsonSerializer.Deserialize<EventCreatedIntegrationEvent>(payload, SharedJsonOptions.Web)
                 ?? throw new InvalidOperationException($"Invalid {KafkaTopics.EventCreated} message");
 
         if (await AlreadyProcessed(db, integrationEvent.MessageId, nameof(EventCreatedIntegrationEvent),
@@ -190,7 +190,7 @@ public class NotificationIntegrationEventConsumerService : BackgroundService {
     async Task HandleEventUpdated(NotificationServiceDbContext db, string payload,
             CancellationToken stoppingToken) {
         EventUpdatedIntegrationEvent integrationEvent =
-                JsonSerializer.Deserialize<EventUpdatedIntegrationEvent>(payload, JsonOptions)
+                JsonSerializer.Deserialize<EventUpdatedIntegrationEvent>(payload, SharedJsonOptions.Web)
                 ?? throw new InvalidOperationException($"Invalid {KafkaTopics.EventUpdated} message");
 
         if (await AlreadyProcessed(db, integrationEvent.MessageId, nameof(EventUpdatedIntegrationEvent),
@@ -213,8 +213,4 @@ public class NotificationIntegrationEventConsumerService : BackgroundService {
         return await db.ProcessedIntegrationMessages
                 .AnyAsync(m => m.MessageId == messageId && m.MessageType == messageType, stoppingToken);
     }
-
-    static readonly JsonSerializerOptions JsonOptions = new() {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
 }
