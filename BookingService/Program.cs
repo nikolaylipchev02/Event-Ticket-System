@@ -12,62 +12,15 @@ const int JWT_CLOCK_SKEW_IN_MINUTES = 1;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddHostedService<BookingIntegrationEventConsumerService>();
-
-builder.Services.AddSingleton<IProducer<string, string>>(sp => {
-    IConfiguration configuration = sp.GetRequiredService<IConfiguration>();
-
-    string bootstrapServers = configuration["Kafka:BootstrapServers"]
-                              ?? throw new InvalidOperationException("Kafka bootstrap servers not configured");
-
-    ProducerConfig producerConfig = new() {
-            BootstrapServers = bootstrapServers,
-            Acks = Acks.All,
-            EnableIdempotence = true,
-            LingerMs = 5
-    };
-
-    return new ProducerBuilder<string, string>(producerConfig).Build();
-});
-
-builder.Services.AddHostedService<BookingOutboxPublisherService>();
-
-builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
-
-builder.Services.AddAuthentication(options => {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-        })
-        .AddJwtBearer(options => {
-            options.MapInboundClaims = false;
-
-            JwtOptions jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()
-                                    ?? throw new InvalidOperationException("JWT configuration was not found");
-
-            options.TokenValidationParameters = new TokenValidationParameters {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = jwtOptions.Issuer,
-                    ValidAudience = jwtOptions.Audience,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key)),
-                    ClockSkew = TimeSpan.FromMinutes(JWT_CLOCK_SKEW_IN_MINUTES)
-            };
-        });
-
-builder.Services.AddAuthorization();
+AddMessaging();
+AddAuthentication();
+AddHttpClients();
+AddPersistence();
+AddDependencies();
+AddHostedServices();
 
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
-
-builder.Services.AddHttpClient<IEventApiClient, EventApiClient>(client => {
-    client.BaseAddress = new Uri("http://localhost:5076");
-});
-
-BindDependencies();
-ConnectToPostgreSql();
 
 WebApplication app = builder.Build();
 
@@ -85,14 +38,74 @@ app.UseHttpsRedirection();
 app.Run();
 return;
 
-void ConnectToPostgreSql() {
+void AddMessaging() {
+    builder.Services.AddSingleton<IProducer<string, string>>(sp => {
+        IConfiguration configuration = sp.GetRequiredService<IConfiguration>();
+
+        string bootstrapServers = configuration["Kafka:BootstrapServers"]
+                                  ?? throw new InvalidOperationException("Kafka bootstrap servers not configured");
+
+        ProducerConfig producerConfig = new() {
+                BootstrapServers = bootstrapServers,
+                Acks = Acks.All,
+                EnableIdempotence = true,
+                LingerMs = 5
+        };
+
+        return new ProducerBuilder<string, string>(producerConfig).Build();
+    });
+
+    builder.Services.AddHostedService<BookingOutboxPublisherService>();
+}
+
+void AddAuthentication() {
+    builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
+
+    builder.Services.AddAuthentication(options => {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options => {
+                options.MapInboundClaims = false;
+
+                JwtOptions jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()
+                                        ?? throw new InvalidOperationException("JWT configuration was not found");
+
+                options.TokenValidationParameters = new TokenValidationParameters {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = jwtOptions.Issuer,
+                        ValidAudience = jwtOptions.Audience,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key)),
+                        ClockSkew = TimeSpan.FromMinutes(JWT_CLOCK_SKEW_IN_MINUTES)
+                };
+            });
+
+    builder.Services.AddAuthorization();
+}
+
+void AddHttpClients() {
+    builder.Services.AddHttpClient<IEventApiClient, EventApiClient>(client => {
+        client.BaseAddress = new Uri("http://localhost:5076");
+    });
+}
+
+void AddPersistence() {
     string connectionString = builder.Configuration.GetConnectionString($"{BOOKING_SERVICE_DB_CONNECTION_STRING}")
                               ?? throw new InvalidOperationException(
                                       $"Connection string '{BOOKING_SERVICE_DB_CONNECTION_STRING}' was not found");
+
     builder.Services.AddDbContext<BookingServiceDbContext>(options => { options.UseNpgsql(connectionString); });
 }
 
-void BindDependencies() {
+void AddDependencies() {
     builder.Services.AddScoped<IBookingService, BookingService.Application.BookingService>();
     builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+}
+
+void AddHostedServices() {
+    builder.Services.AddHostedService<BookingIntegrationEventConsumerService>();
 }

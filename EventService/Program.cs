@@ -8,36 +8,13 @@ const string REDIS_INSTANCE_NAME = "EventService:";
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddSingleton<IProducer<string, string>>(sp => {
-    IConfiguration configuration = sp.GetRequiredService<IConfiguration>();
-
-    string bootstrapServers = configuration["Kafka:BootstrapServers"]
-                              ?? throw new InvalidOperationException("Kafka bootstrap servers not configured");
-
-    ProducerConfig producerConfig = new() {
-            BootstrapServers = bootstrapServers,
-            Acks = Acks.All,
-            EnableIdempotence = true,
-            LingerMs = 5
-    };
-
-    return new ProducerBuilder<string, string>(producerConfig).Build();
-});
-
-builder.Services.AddStackExchangeRedisCache(options => {
-    options.Configuration = builder.Configuration.GetConnectionString("Redis")
-                            ?? throw new InvalidOperationException("Redis connection string was not found");
-
-    options.InstanceName = REDIS_INSTANCE_NAME;
-});
-
-builder.Services.AddHostedService<EventOutboxPublisherService>();
+AddMessaging();
+AddCaching();
+AddPersistence();
+AddDependencies();
 
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
-
-BindDependencies();
-ConnectToPostgreSql();
 
 WebApplication app = builder.Build();
 
@@ -52,13 +29,43 @@ app.UseHttpsRedirection();
 app.Run();
 return;
 
-void ConnectToPostgreSql() {
+void AddMessaging() {
+    builder.Services.AddSingleton<IProducer<string, string>>(sp => {
+        IConfiguration configuration = sp.GetRequiredService<IConfiguration>();
+
+        string bootstrapServers = configuration["Kafka:BootstrapServers"]
+                                  ?? throw new InvalidOperationException("Kafka bootstrap servers not configured");
+
+        ProducerConfig producerConfig = new() {
+                BootstrapServers = bootstrapServers,
+                Acks = Acks.All,
+                EnableIdempotence = true,
+                LingerMs = 5
+        };
+
+        return new ProducerBuilder<string, string>(producerConfig).Build();
+    });
+
+    builder.Services.AddHostedService<EventOutboxPublisherService>();
+}
+
+void AddCaching() {
+    builder.Services.AddStackExchangeRedisCache(options => {
+        options.Configuration = builder.Configuration.GetConnectionString("Redis")
+                                ?? throw new InvalidOperationException("Redis connection string was not found");
+
+        options.InstanceName = REDIS_INSTANCE_NAME;
+    });
+}
+
+void AddPersistence() {
     string connectionString = builder.Configuration.GetConnectionString($"{EVENT_SERVICE_DB_CONNECTION_STRING}")
                               ?? throw new InvalidOperationException(
                                       $"Connection string '{EVENT_SERVICE_DB_CONNECTION_STRING}' was not found");
+
     builder.Services.AddDbContext<EventServiceDbContext>(options => { options.UseNpgsql(connectionString); });
 }
 
-void BindDependencies() {
+void AddDependencies() {
     builder.Services.AddScoped<IEventRepository, EventRepository>();
 }
