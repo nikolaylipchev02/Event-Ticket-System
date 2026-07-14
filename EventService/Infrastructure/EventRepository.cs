@@ -4,24 +4,47 @@ using MessagingContracts;
 using EventService.Application;
 using EventService.Application.DTOs;
 using EventService.Domain.Entities;
+using EventService.Infrastructure.Caching;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace EventService.Infrastructure;
 
 public class EventRepository : IEventRepository {
     readonly EventServiceDbContext _eventServiceDbContext;
+    readonly IDistributedCache _cache;
 
-    public EventRepository(EventServiceDbContext eventServiceDbContext) {
+    public EventRepository(EventServiceDbContext eventServiceDbContext, IDistributedCache cache) {
         _eventServiceDbContext = eventServiceDbContext;
+        _cache = cache;
     }
 
     public async Task<List<Event>> GetEvents() {
-        return await _eventServiceDbContext.Events
+        string cacheKey = EventCacheKeys.AllEvents(await GetCacheVersion());
+        string? cachedEvents = await _cache.GetStringAsync(cacheKey);
+
+        if (cachedEvents is not null) {
+            return JsonSerializer.Deserialize<List<Event>>(cachedEvents, JsonOptions) ?? [];
+        }
+
+        List<Event> events = await _eventServiceDbContext.Events
                 .AsNoTracking()
+                .OrderBy(e => e.Date)
+                .ThenBy(e => e.Title)
                 .ToListAsync();
+
+        await _cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(events, JsonOptions), EventCacheOptions.List);
+        return events;
     }
 
     public async Task<List<Event>> GetFilteredEvents(FilterEventDto filter) {
+        string cacheKey = EventCacheKeys.Filtered(await GetCacheVersion(), filter);
+        string? cachedEvents = await _cache.GetStringAsync(cacheKey);
+
+        if (cachedEvents is not null) {
+            return JsonSerializer.Deserialize<List<Event>>(cachedEvents, JsonOptions) ?? [];
+        }
+
         IQueryable<Event> query = _eventServiceDbContext.Events.AsNoTracking();
 
         if (filter.City is not null) {
@@ -48,13 +71,34 @@ public class EventRepository : IEventRepository {
             query = query.Where(e => e.Date <= filter.ToDate);
         }
 
-        return await query.ToListAsync();
+        List<Event> events = await query
+                .OrderBy(e => e.Date)
+                .ThenBy(e => e.Title)
+                .ToListAsync();
+
+        await _cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(events, JsonOptions), EventCacheOptions.List);
+
+        return events;
     }
 
     public async Task<Event?> GetSpecificEvent(Guid id) {
-        return await _eventServiceDbContext.Events
+        string cacheKey = EventCacheKeys.EventById(await GetCacheVersion(), id);
+        string? cachedEvent = await _cache.GetStringAsync(cacheKey);
+
+        if (cachedEvent is not null) {
+            return JsonSerializer.Deserialize<Event>(cachedEvent, JsonOptions);
+        }
+
+        Event? existingEvent = await _eventServiceDbContext.Events
                 .AsNoTracking()
                 .FirstOrDefaultAsync(e => e.Id == id);
+
+        if (existingEvent is not null) {
+            await _cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(existingEvent, JsonOptions),
+                    EventCacheOptions.SpecificEvent);
+        }
+
+        return existingEvent;
     }
 
     public async Task CreateEvent(Event e) {
@@ -81,6 +125,7 @@ public class EventRepository : IEventRepository {
         });
 
         await _eventServiceDbContext.SaveChangesAsync();
+        await InvalidateEventCache();
     }
 
     public async Task UpdateEvent(Event e) {
@@ -106,6 +151,7 @@ public class EventRepository : IEventRepository {
         });
 
         await _eventServiceDbContext.SaveChangesAsync();
+        await InvalidateEventCache();
     }
 
     public async Task DeleteEvent(Guid id) {
@@ -114,7 +160,27 @@ public class EventRepository : IEventRepository {
         if (e is not null) {
             _eventServiceDbContext.Events.Remove(e);
             await _eventServiceDbContext.SaveChangesAsync();
+            await InvalidateEventCache();
         }
+    }
+
+    async Task<string> GetCacheVersion() {
+        string? version = await _cache.GetStringAsync(EventCacheKeys.CacheVersionKey);
+
+        if (!string.IsNullOrWhiteSpace(version)) {
+            return version;
+        }
+
+        string newVersion = Guid.NewGuid().ToString("N");
+        await _cache.SetStringAsync(EventCacheKeys.CacheVersionKey, newVersion, EventCacheOptions.Version);
+
+        return newVersion;
+    }
+
+    async Task InvalidateEventCache() {
+        string newVersion = Guid.NewGuid().ToString("N");
+        await _cache.SetStringAsync(EventCacheKeys.CacheVersionKey, newVersion, EventCacheOptions.Version);
+
     }
 
     static readonly JsonSerializerOptions JsonOptions = new() {
