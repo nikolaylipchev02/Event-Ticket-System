@@ -7,24 +7,33 @@ using EventService.Domain.Entities;
 using EventService.Infrastructure.Caching;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
+using StackExchange.Redis;
 
 namespace EventService.Infrastructure;
 
 public class EventRepository : IEventRepository {
     readonly EventServiceDbContext _eventServiceDbContext;
     readonly IDistributedCache _cache;
+    readonly ILogger<EventRepository> _logger;
 
-    public EventRepository(EventServiceDbContext eventServiceDbContext, IDistributedCache cache) {
+    public EventRepository(EventServiceDbContext eventServiceDbContext, IDistributedCache cache,
+            ILogger<EventRepository> logger) {
         _eventServiceDbContext = eventServiceDbContext;
         _cache = cache;
+        _logger = logger;
     }
 
     public async Task<List<Event>> GetEvents() {
         string cacheKey = EventCacheKeys.AllEvents(await GetCacheVersion());
-        string? cachedEvents = await _cache.GetStringAsync(cacheKey);
 
-        if (cachedEvents is not null) {
-            return JsonSerializer.Deserialize<List<Event>>(cachedEvents, JsonOptions) ?? [];
+        try {
+            string? cachedEvents = await _cache.GetStringAsync(cacheKey);
+
+            if (cachedEvents is not null) {
+                return JsonSerializer.Deserialize<List<Event>>(cachedEvents, JsonOptions) ?? [];
+            }
+        } catch (Exception e) when (IsRedisException(e)) {
+            _logger.LogWarning(e, "Redis read failed for key {CacheKey}, falling back to database", cacheKey);
         }
 
         List<Event> events = await _eventServiceDbContext.Events
@@ -33,16 +42,21 @@ public class EventRepository : IEventRepository {
                 .ThenBy(e => e.Title)
                 .ToListAsync();
 
-        await _cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(events, JsonOptions), EventCacheOptions.List);
+        await TryCache(cacheKey, JsonSerializer.Serialize(events, JsonOptions), EventCacheOptions.List);
         return events;
     }
 
     public async Task<List<Event>> GetFilteredEvents(FilterEventDto filter) {
         string cacheKey = EventCacheKeys.Filtered(await GetCacheVersion(), filter);
-        string? cachedEvents = await _cache.GetStringAsync(cacheKey);
 
-        if (cachedEvents is not null) {
-            return JsonSerializer.Deserialize<List<Event>>(cachedEvents, JsonOptions) ?? [];
+        try {
+            string? cachedEvents = await _cache.GetStringAsync(cacheKey);
+
+            if (cachedEvents is not null) {
+                return JsonSerializer.Deserialize<List<Event>>(cachedEvents, JsonOptions) ?? [];
+            }
+        } catch (Exception e) when (IsRedisException(e)) {
+            _logger.LogWarning(e, "Redis read failed for key {CacheKey}, falling back to database", cacheKey);
         }
 
         IQueryable<Event> query = _eventServiceDbContext.Events.AsNoTracking();
@@ -76,17 +90,22 @@ public class EventRepository : IEventRepository {
                 .ThenBy(e => e.Title)
                 .ToListAsync();
 
-        await _cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(events, JsonOptions), EventCacheOptions.List);
+        await TryCache(cacheKey, JsonSerializer.Serialize(events, JsonOptions), EventCacheOptions.List);
 
         return events;
     }
 
     public async Task<Event?> GetSpecificEvent(Guid id) {
         string cacheKey = EventCacheKeys.EventById(await GetCacheVersion(), id);
-        string? cachedEvent = await _cache.GetStringAsync(cacheKey);
 
-        if (cachedEvent is not null) {
-            return JsonSerializer.Deserialize<Event>(cachedEvent, JsonOptions);
+        try {
+            string? cachedEvent = await _cache.GetStringAsync(cacheKey);
+
+            if (cachedEvent is not null) {
+                return JsonSerializer.Deserialize<Event>(cachedEvent, JsonOptions);
+            }
+        } catch (Exception e) when (IsRedisException(e)) {
+            _logger.LogWarning(e, "Redis read failed for key {CacheKey}, falling back to database", cacheKey);
         }
 
         Event? existingEvent = await _eventServiceDbContext.Events
@@ -94,7 +113,7 @@ public class EventRepository : IEventRepository {
                 .FirstOrDefaultAsync(e => e.Id == id);
 
         if (existingEvent is not null) {
-            await _cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(existingEvent, JsonOptions),
+            await TryCache(cacheKey, JsonSerializer.Serialize(existingEvent, JsonOptions),
                     EventCacheOptions.SpecificEvent);
         }
 
@@ -165,25 +184,47 @@ public class EventRepository : IEventRepository {
     }
 
     async Task<string> GetCacheVersion() {
-        string? version = await _cache.GetStringAsync(EventCacheKeys.CacheVersionKey);
+        try {
+            string? version = await _cache.GetStringAsync(EventCacheKeys.CacheVersionKey);
 
-        if (!string.IsNullOrWhiteSpace(version)) {
-            return version;
+            if (!string.IsNullOrWhiteSpace(version)) {
+                return version;
+            }
+
+            string newVersion = Guid.NewGuid().ToString("N");
+            await TryCache(EventCacheKeys.CacheVersionKey, newVersion, EventCacheOptions.Version);
+
+            return newVersion;
+        } catch (Exception e) when (IsRedisException(e)) {
+            _logger.LogWarning(e, "Redis version lookup failed, use uncached request path instead");
+            return Guid.NewGuid().ToString("N");
         }
-
-        string newVersion = Guid.NewGuid().ToString("N");
-        await _cache.SetStringAsync(EventCacheKeys.CacheVersionKey, newVersion, EventCacheOptions.Version);
-
-        return newVersion;
     }
 
     async Task InvalidateEventCache() {
-        string newVersion = Guid.NewGuid().ToString("N");
-        await _cache.SetStringAsync(EventCacheKeys.CacheVersionKey, newVersion, EventCacheOptions.Version);
+        try {
+            string newVersion = Guid.NewGuid().ToString("N");
+            await TryCache(EventCacheKeys.CacheVersionKey, newVersion, EventCacheOptions.Version);
+        } catch (Exception e) when (IsRedisException(e)) {
+            _logger.LogWarning(e, "Redis invalidation failed");
+        }
+    }
 
+    async Task TryCache(string key, string value, DistributedCacheEntryOptions options) {
+        try {
+            await _cache.SetStringAsync(key, value, options);
+        } catch (Exception e) when (IsRedisException(e)) {
+            _logger.LogWarning(e, "Redis write failed for key {Cache Key}, continuing without cache", key);
+        }
     }
 
     static readonly JsonSerializerOptions JsonOptions = new() {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
+
+    static bool IsRedisException(Exception e) {
+        return e is RedisConnectionException
+                or RedisTimeoutException
+                or RedisServerException;
+    }
 }
