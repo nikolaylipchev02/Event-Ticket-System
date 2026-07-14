@@ -4,6 +4,7 @@ using EventService.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
 const string EVENT_SERVICE_DB_CONNECTION_STRING = "EventServiceDbConnection";
+const string REDIS_INSTANCE_NAME = "EventService:";
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,13 @@ builder.Services.AddSingleton<IProducer<string, string>>(sp => {
     };
 
     return new ProducerBuilder<string, string>(producerConfig).Build();
+});
+
+builder.Services.AddStackExchangeRedisCache(options => {
+    options.Configuration = builder.Configuration.GetConnectionString("Redis")
+                            ?? throw new InvalidOperationException("Redis connection string was not found");
+
+    options.InstanceName = REDIS_INSTANCE_NAME;
 });
 
 builder.Services.AddHostedService<EventOutboxPublisherService>();
