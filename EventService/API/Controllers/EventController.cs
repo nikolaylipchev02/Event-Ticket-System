@@ -16,7 +16,6 @@ public class EventController : ControllerBase {
 
     [HttpGet]
     public async Task<ActionResult<List<Event>>> GetEvents() {
-        // TODO: proper return types
         return Ok(await _eventRepository.GetEvents());
     }
 
@@ -31,7 +30,6 @@ public class EventController : ControllerBase {
             return BadRequest("From Date cannot be greater than To Date");
         }
 
-        // TODO: proper return types
         return Ok(await _eventRepository.GetFilteredEvents(filter));
     }
 
@@ -43,7 +41,6 @@ public class EventController : ControllerBase {
             return NotFound();
         }
 
-        // TODO: proper return types
         return Ok(existingEvent);
     }
 
@@ -64,8 +61,7 @@ public class EventController : ControllerBase {
 
         await _eventRepository.CreateEvent(eventToCreate);
 
-        // TODO: proper return types
-        return Ok();
+        return NoContent();
     }
 
     [HttpPatch("{id:guid}")]
@@ -102,16 +98,14 @@ public class EventController : ControllerBase {
 
         await _eventRepository.UpdateEvent(existingEvent);
 
-        // TODO: proper return types
-        return Ok();
+        return NoContent();
     }
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteEvent(Guid id) {
         await _eventRepository.DeleteEvent(id);
 
-        // TODO: proper return types
-        return Ok();
+        return NoContent();
     }
 
     static DateTime NormalizeEventDate(DateTime date) {

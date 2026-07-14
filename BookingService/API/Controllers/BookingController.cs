@@ -25,10 +25,9 @@ public class BookingController : ControllerBase {
         string? userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
         if (userIdString is null) {
-            return Forbid();
+            return Unauthorized();
         }
 
-        // TODO: proper return types
         return Ok(await _bookingRepository.GetBookings(Guid.Parse(userIdString)));
     }
 
@@ -41,7 +40,7 @@ public class BookingController : ControllerBase {
         string? userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
         if (userIdString is null) {
-            return Forbid();
+            return Unauthorized();
         }
 
         if (string.IsNullOrWhiteSpace(idempotencyKey)) {
@@ -49,8 +48,8 @@ public class BookingController : ControllerBase {
         }
 
         try {
-            Guid bookingId = await _bookingService.Book(Guid.Parse(userIdString), request.EventId, idempotencyKey);
-            return Ok(new CreateBookingResponseDto { BookingId = bookingId });
+            await _bookingService.Book(Guid.Parse(userIdString), request.EventId, idempotencyKey);
+            return NoContent();
         } catch (KeyNotFoundException) {
             return NotFound();
         } catch (InvalidOperationException e) {
@@ -64,12 +63,12 @@ public class BookingController : ControllerBase {
         string? userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
         if (userIdString is null) {
-            return Forbid();
+            return Unauthorized();
         }
 
         try {
             await _bookingRepository.CancelBooking(Guid.Parse(userIdString), bookingId);
-            return Ok();
+            return NoContent();
         } catch (KeyNotFoundException) {
             return NotFound();
         } catch (InvalidOperationException) {

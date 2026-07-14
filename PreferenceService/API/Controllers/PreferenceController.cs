@@ -24,7 +24,7 @@ public class PreferenceController : ControllerBase {
         string? userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
         if (userIdString is null) {
-            return Forbid();
+            return Unauthorized();
         }
 
         Preference? preference = await _preferenceRepository.GetPreference(Guid.Parse(userIdString));
@@ -33,7 +33,6 @@ public class PreferenceController : ControllerBase {
             return NotFound();
         }
 
-        // TODO: proper return types
         return Ok(preference);
     }
 
@@ -49,7 +48,7 @@ public class PreferenceController : ControllerBase {
         string? userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
         if (userIdString is null) {
-            return Forbid();
+            return Unauthorized();
         }
 
         Preference? preference = await _preferenceRepository.GetPreference(Guid.Parse(userIdString));
@@ -74,8 +73,7 @@ public class PreferenceController : ControllerBase {
             await _preferenceRepository.CreatePreference(newPreference);
         }
 
-        // TODO: proper return types
-        return Ok();
+        return NoContent();
     }
 
     [Authorize]
@@ -84,12 +82,11 @@ public class PreferenceController : ControllerBase {
         string? userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
         if (userIdString is null) {
-            return Forbid();
+            return Unauthorized();
         }
 
         await _preferenceRepository.DeletePreference(Guid.Parse(userIdString));
 
-        // TODO: proper return types
-        return Ok();
+        return NoContent();
     }
 }

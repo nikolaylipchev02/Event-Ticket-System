@@ -22,10 +22,9 @@ public class NotificationController : ControllerBase {
         string? userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
         if (userIdString is null) {
-            return Forbid();
+            return Unauthorized();
         }
 
-        // TODO: proper return types
         return Ok(await _notificationRepository.GetNotifications(Guid.Parse(userIdString)));
     }
 }
