@@ -84,6 +84,22 @@ public class EventController : ControllerBase {
             existingEvent.Description = request.Description;
         }
 
+        if (request.City is not null) {
+            existingEvent.City = request.City.Value;
+        }
+
+        if (request.Category is not null) {
+            existingEvent.Category = request.Category.Value;
+        }
+
+        if (request.Price is not null) {
+            existingEvent.Price = request.Price.Value;
+        }
+
+        if (request.Date is not null) {
+            existingEvent.Date = NormalizeEventDate(request.Date.Value);
+        }
+
         await _eventRepository.UpdateEvent(existingEvent);
 
         // TODO: proper return types
