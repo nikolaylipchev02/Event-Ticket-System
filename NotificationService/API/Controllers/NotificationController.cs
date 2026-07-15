@@ -18,13 +18,13 @@ public class NotificationController : ControllerBase {
 
     [Authorize]
     [HttpGet]
-    public async Task<ActionResult<List<Notification>>> GetNotifications() {
+    public async Task<ActionResult<List<Notification>>> GetNotifications(CancellationToken cancellationToken) {
         string? userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
         if (userIdString is null) {
             return Unauthorized();
         }
 
-        return Ok(await _notificationRepository.GetNotifications(Guid.Parse(userIdString)));
+        return Ok(await _notificationRepository.GetNotifications(Guid.Parse(userIdString), cancellationToken));
     }
 }

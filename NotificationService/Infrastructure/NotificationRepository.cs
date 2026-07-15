@@ -11,10 +11,10 @@ public class NotificationRepository : INotificationRepository {
         _notificationServiceDbContext = notificationServiceDbContext;
     }
 
-    public async Task<List<Notification>> GetNotifications(Guid userId) {
+    public async Task<List<Notification>> GetNotifications(Guid userId, CancellationToken cancellationToken) {
         return await _notificationServiceDbContext.Notifications
                 .AsNoTracking()
                 .Where(n => n.UserId == userId)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
     }
 }

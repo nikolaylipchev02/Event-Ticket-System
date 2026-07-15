@@ -56,6 +56,8 @@ public class NotificationIntegrationEventConsumerService : BackgroundService {
                 try {
                     await HandleMessage(result, stoppingToken);
                     _consumer.Commit(result);
+                } catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) {
+                    return;
                 } catch (Exception e) {
                     _logger.LogError(
                             e,
@@ -65,9 +67,8 @@ public class NotificationIntegrationEventConsumerService : BackgroundService {
                     );
                 }
             }
-        } catch (OperationCanceledException) {
-            // Expected when the host is shutting down.
-            // Gracefully exit instead of treating cancellation as an error.
+        } catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) {
+            return;
         } finally {
             _consumer.Close();
             _consumer.Dispose();
@@ -164,7 +165,11 @@ public class NotificationIntegrationEventConsumerService : BackgroundService {
         }
 
         List<Guid> matchingUserIds =
-                await _preferenceApiClient.GetMatchingUserIds(integrationEvent.City, integrationEvent.Category);
+                await _preferenceApiClient.GetMatchingUserIds(
+                        integrationEvent.City,
+                        integrationEvent.Category,
+                        stoppingToken
+                );
 
         foreach (Guid userId in matchingUserIds.Distinct()) {
             db.Notifications.Add(new Notification {
