@@ -23,11 +23,11 @@ public class EventRepository : IEventRepository {
         _logger = logger;
     }
 
-    public async Task<List<Event>> GetEvents() {
-        string cacheKey = EventCacheKeys.AllEvents(await GetCacheVersion());
+    public async Task<List<Event>> GetEvents(CancellationToken cancellationToken) {
+        string cacheKey = EventCacheKeys.AllEvents(await GetCacheVersion(cancellationToken));
 
         try {
-            string? cachedEvents = await _cache.GetStringAsync(cacheKey);
+            string? cachedEvents = await _cache.GetStringAsync(cacheKey, cancellationToken);
 
             if (cachedEvents is not null) {
                 return JsonSerializer.Deserialize<List<Event>>(cachedEvents, SharedJsonOptions.Web) ?? [];
@@ -40,17 +40,18 @@ public class EventRepository : IEventRepository {
                 .AsNoTracking()
                 .OrderBy(e => e.Date)
                 .ThenBy(e => e.Title)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
-        await TryCache(cacheKey, JsonSerializer.Serialize(events, SharedJsonOptions.Web), EventCacheOptions.List);
+        await TryCache(cacheKey, JsonSerializer.Serialize(events, SharedJsonOptions.Web), EventCacheOptions.List,
+                cancellationToken);
         return events;
     }
 
-    public async Task<List<Event>> GetFilteredEvents(FilterEventDto filter) {
-        string cacheKey = EventCacheKeys.Filtered(await GetCacheVersion(), filter);
+    public async Task<List<Event>> GetFilteredEvents(FilterEventDto filter, CancellationToken cancellationToken) {
+        string cacheKey = EventCacheKeys.Filtered(await GetCacheVersion(cancellationToken), filter);
 
         try {
-            string? cachedEvents = await _cache.GetStringAsync(cacheKey);
+            string? cachedEvents = await _cache.GetStringAsync(cacheKey, cancellationToken);
 
             if (cachedEvents is not null) {
                 return JsonSerializer.Deserialize<List<Event>>(cachedEvents, SharedJsonOptions.Web) ?? [];
@@ -88,18 +89,19 @@ public class EventRepository : IEventRepository {
         List<Event> events = await query
                 .OrderBy(e => e.Date)
                 .ThenBy(e => e.Title)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
-        await TryCache(cacheKey, JsonSerializer.Serialize(events, SharedJsonOptions.Web), EventCacheOptions.List);
+        await TryCache(cacheKey, JsonSerializer.Serialize(events, SharedJsonOptions.Web), EventCacheOptions.List,
+                cancellationToken);
 
         return events;
     }
 
-    public async Task<Event?> GetSpecificEvent(Guid id) {
-        string cacheKey = EventCacheKeys.EventById(await GetCacheVersion(), id);
+    public async Task<Event?> GetSpecificEvent(Guid id, CancellationToken cancellationToken) {
+        string cacheKey = EventCacheKeys.EventById(await GetCacheVersion(cancellationToken), id);
 
         try {
-            string? cachedEvent = await _cache.GetStringAsync(cacheKey);
+            string? cachedEvent = await _cache.GetStringAsync(cacheKey, cancellationToken);
 
             if (cachedEvent is not null) {
                 return JsonSerializer.Deserialize<Event>(cachedEvent, SharedJsonOptions.Web);
@@ -110,17 +112,17 @@ public class EventRepository : IEventRepository {
 
         Event? existingEvent = await _eventServiceDbContext.Events
                 .AsNoTracking()
-                .FirstOrDefaultAsync(e => e.Id == id);
+                .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
 
         if (existingEvent is not null) {
             await TryCache(cacheKey, JsonSerializer.Serialize(existingEvent, SharedJsonOptions.Web),
-                    EventCacheOptions.SpecificEvent);
+                    EventCacheOptions.SpecificEvent, cancellationToken);
         }
 
         return existingEvent;
     }
 
-    public async Task CreateEvent(Event e) {
+    public async Task CreateEvent(Event e, CancellationToken cancellationToken) {
         _eventServiceDbContext.Events.Add(e);
 
         EventCreatedIntegrationEvent integrationEvent = new(
@@ -143,11 +145,11 @@ public class EventRepository : IEventRepository {
                 RetryCount = 0
         });
 
-        await _eventServiceDbContext.SaveChangesAsync();
-        await InvalidateEventCache();
+        await _eventServiceDbContext.SaveChangesAsync(cancellationToken);
+        await InvalidateEventCache(cancellationToken);
     }
 
-    public async Task UpdateEvent(Event e) {
+    public async Task UpdateEvent(Event e, CancellationToken cancellationToken) {
         _eventServiceDbContext.Events.Update(e);
 
         EventUpdatedIntegrationEvent integrationEvent = new(
@@ -169,30 +171,30 @@ public class EventRepository : IEventRepository {
                 RetryCount = 0
         });
 
-        await _eventServiceDbContext.SaveChangesAsync();
-        await InvalidateEventCache();
+        await _eventServiceDbContext.SaveChangesAsync(cancellationToken);
+        await InvalidateEventCache(cancellationToken);
     }
 
-    public async Task DeleteEvent(Guid id) {
-        Event? e = await _eventServiceDbContext.Events.FirstOrDefaultAsync(e => e.Id == id);
+    public async Task DeleteEvent(Guid id, CancellationToken cancellationToken) {
+        Event? e = await _eventServiceDbContext.Events.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
 
         if (e is not null) {
             _eventServiceDbContext.Events.Remove(e);
-            await _eventServiceDbContext.SaveChangesAsync();
-            await InvalidateEventCache();
+            await _eventServiceDbContext.SaveChangesAsync(cancellationToken);
+            await InvalidateEventCache(cancellationToken);
         }
     }
 
-    async Task<string> GetCacheVersion() {
+    async Task<string> GetCacheVersion(CancellationToken cancellationToken) {
         try {
-            string? version = await _cache.GetStringAsync(EventCacheKeys.CacheVersionKey);
+            string? version = await _cache.GetStringAsync(EventCacheKeys.CacheVersionKey, cancellationToken);
 
             if (!string.IsNullOrWhiteSpace(version)) {
                 return version;
             }
 
             string newVersion = Guid.NewGuid().ToString("N");
-            await TryCache(EventCacheKeys.CacheVersionKey, newVersion, EventCacheOptions.Version);
+            await TryCache(EventCacheKeys.CacheVersionKey, newVersion, EventCacheOptions.Version, cancellationToken);
 
             return newVersion;
         } catch (Exception e) when (IsRedisException(e)) {
@@ -201,18 +203,19 @@ public class EventRepository : IEventRepository {
         }
     }
 
-    async Task InvalidateEventCache() {
+    async Task InvalidateEventCache(CancellationToken cancellationToken) {
         try {
             string newVersion = Guid.NewGuid().ToString("N");
-            await TryCache(EventCacheKeys.CacheVersionKey, newVersion, EventCacheOptions.Version);
+            await TryCache(EventCacheKeys.CacheVersionKey, newVersion, EventCacheOptions.Version, cancellationToken);
         } catch (Exception e) when (IsRedisException(e)) {
             _logger.LogWarning(e, "Redis invalidation failed");
         }
     }
 
-    async Task TryCache(string key, string value, DistributedCacheEntryOptions options) {
+    async Task TryCache(string key, string value, DistributedCacheEntryOptions options,
+            CancellationToken cancellationToken) {
         try {
-            await _cache.SetStringAsync(key, value, options);
+            await _cache.SetStringAsync(key, value, options, cancellationToken);
         } catch (Exception e) when (IsRedisException(e)) {
             _logger.LogWarning(e, "Redis write failed for key {Cache Key}, continuing without cache", key);
         }

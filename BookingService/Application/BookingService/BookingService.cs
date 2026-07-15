@@ -11,9 +11,10 @@ public class BookingService : IBookingService {
         _eventApiClient = eventApiClient;
     }
 
-    public async Task<Guid> Book(Guid userId, Guid eventId, string idempotencyKey) {
+    public async Task<Guid> Book(Guid userId, Guid eventId, string idempotencyKey,
+            CancellationToken cancellationToken) {
         BookingIdempotencyRecord? existingBookingRecord =
-                await _bookingRepository.GetSpecificBookingRecord(userId, idempotencyKey);
+                await _bookingRepository.GetSpecificBookingRecord(userId, idempotencyKey, cancellationToken);
 
         if (existingBookingRecord is not null) {
             return existingBookingRecord.EventId != eventId
@@ -21,7 +22,7 @@ public class BookingService : IBookingService {
                     : existingBookingRecord.BookingId;
         }
 
-        bool eventExists = await _eventApiClient.EventExists(eventId);
+        bool eventExists = await _eventApiClient.EventExists(eventId, cancellationToken);
 
         if (!eventExists) {
             throw new KeyNotFoundException("Event not found");
@@ -35,6 +36,6 @@ public class BookingService : IBookingService {
                 BookedAt = DateTime.UtcNow
         };
 
-        return await _bookingRepository.Book(booking, userId, idempotencyKey);
+        return await _bookingRepository.Book(booking, userId, idempotencyKey, cancellationToken);
     }
 }

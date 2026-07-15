@@ -49,6 +49,8 @@ public class BookingIntegrationEventConsumerService : BackgroundService {
                 try {
                     await HandleEventCreated(result, stoppingToken);
                     _consumer.Commit(result);
+                } catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) {
+                    return;
                 } catch (Exception e) {
                     _logger.LogError(
                             e,
@@ -58,9 +60,8 @@ public class BookingIntegrationEventConsumerService : BackgroundService {
                     );
                 }
             }
-        } catch (OperationCanceledException) {
-            // Expected when the host is shutting down.
-            // Gracefully exit instead of treating cancellation as an error.
+        } catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) {
+            return;
         } finally {
             _consumer.Close();
             _consumer.Dispose();

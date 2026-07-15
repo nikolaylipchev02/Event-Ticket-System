@@ -19,10 +19,10 @@ public class AuthService : IAuthService {
         _jwtTokenService = jwtTokenService;
     }
 
-    public async Task<AuthResponseDto?> Register(RegisterUserRequestDto request) {
+    public async Task<AuthResponseDto?> Register(RegisterUserRequestDto request, CancellationToken cancellationToken) {
         string normalizedEmail = GetNormalizedEmail(request.Email);
 
-        User? userWithThisEmailExists = await _userRepository.GetByEmail(normalizedEmail);
+        User? userWithThisEmailExists = await _userRepository.GetByEmail(normalizedEmail, cancellationToken);
 
         if (userWithThisEmailExists is not null) {
             return null;
@@ -39,13 +39,13 @@ public class AuthService : IAuthService {
 
         user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
 
-        await _userRepository.Add(user);
+        await _userRepository.Add(user, cancellationToken);
 
         return ToAuthResponseDto(user);
     }
 
-    public async Task<AuthResponseDto?> Login(LoginUserRequestDto request) {
-        User? user = await _userRepository.GetByEmail(GetNormalizedEmail(request.Email));
+    public async Task<AuthResponseDto?> Login(LoginUserRequestDto request, CancellationToken cancellationToken) {
+        User? user = await _userRepository.GetByEmail(GetNormalizedEmail(request.Email), cancellationToken);
 
         if (user is null) {
             return null;

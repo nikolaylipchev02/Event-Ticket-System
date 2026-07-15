@@ -15,13 +15,14 @@ public class EventController : ControllerBase {
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<Event>>> GetEvents() {
-        return Ok(await _eventRepository.GetEvents());
+    public async Task<ActionResult<List<Event>>> GetEvents(CancellationToken cancellationToken) {
+        return Ok(await _eventRepository.GetEvents(cancellationToken));
     }
 
     // TODO: think about a better solution
     [HttpGet("filtered")]
-    public async Task<ActionResult<List<Event>>> GetFilteredEvents([FromQuery] FilterEventDto filter) {
+    public async Task<ActionResult<List<Event>>> GetFilteredEvents([FromQuery] FilterEventDto filter,
+            CancellationToken cancellationToken) {
         if (filter.MinPrice is not null && filter.MaxPrice is not null && filter.MinPrice > filter.MaxPrice) {
             return BadRequest("Min Price cannot be greater than Max Price");
         }
@@ -30,12 +31,12 @@ public class EventController : ControllerBase {
             return BadRequest("From Date cannot be greater than To Date");
         }
 
-        return Ok(await _eventRepository.GetFilteredEvents(filter));
+        return Ok(await _eventRepository.GetFilteredEvents(filter, cancellationToken));
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<Event>> GetSpecificEvent(Guid id) {
-        Event? existingEvent = await _eventRepository.GetSpecificEvent(id);
+    public async Task<ActionResult<Event>> GetSpecificEvent(Guid id, CancellationToken cancellationToken) {
+        Event? existingEvent = await _eventRepository.GetSpecificEvent(id, cancellationToken);
 
         if (existingEvent is null) {
             return NotFound();
@@ -45,7 +46,8 @@ public class EventController : ControllerBase {
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateEvent([FromBody] CreateEventDto request) {
+    public async Task<IActionResult>
+            CreateEvent([FromBody] CreateEventDto request, CancellationToken cancellationToken) {
         // TODO: validate business rules
         Event eventToCreate = new() {
                 Id = Guid.NewGuid(),
@@ -59,14 +61,15 @@ public class EventController : ControllerBase {
                 TotalTickets = request.TotalTickets
         };
 
-        await _eventRepository.CreateEvent(eventToCreate);
+        await _eventRepository.CreateEvent(eventToCreate, cancellationToken);
 
         return NoContent();
     }
 
     [HttpPatch("{id:guid}")]
-    public async Task<IActionResult> UpdateEvent(Guid id, [FromBody] UpdateEventDto request) {
-        Event? existingEvent = await _eventRepository.GetSpecificEvent(id);
+    public async Task<IActionResult> UpdateEvent(Guid id, [FromBody] UpdateEventDto request,
+            CancellationToken cancellationToken) {
+        Event? existingEvent = await _eventRepository.GetSpecificEvent(id, cancellationToken);
 
         if (existingEvent is null) {
             return NotFound();
@@ -96,14 +99,14 @@ public class EventController : ControllerBase {
             existingEvent.Date = NormalizeEventDate(request.Date.Value);
         }
 
-        await _eventRepository.UpdateEvent(existingEvent);
+        await _eventRepository.UpdateEvent(existingEvent, cancellationToken);
 
         return NoContent();
     }
 
     [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> DeleteEvent(Guid id) {
-        await _eventRepository.DeleteEvent(id);
+    public async Task<IActionResult> DeleteEvent(Guid id, CancellationToken cancellationToken) {
+        await _eventRepository.DeleteEvent(id, cancellationToken);
 
         return NoContent();
     }

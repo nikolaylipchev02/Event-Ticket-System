@@ -20,14 +20,15 @@ public class PreferenceController : ControllerBase {
 
     [Authorize]
     [HttpGet]
-    public async Task<ActionResult<Preference?>> GetPreference() {
+    public async Task<ActionResult<Preference?>> GetPreference(CancellationToken cancellationToken) {
         string? userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
         if (userIdString is null) {
             return Unauthorized();
         }
 
-        Preference? preference = await _preferenceRepository.GetPreference(Guid.Parse(userIdString));
+        Preference? preference = await _preferenceRepository.GetPreference(Guid.Parse(userIdString),
+                cancellationToken);
 
         if (preference is null) {
             return NotFound();
@@ -38,20 +39,22 @@ public class PreferenceController : ControllerBase {
 
     [HttpGet("matching-users")]
     public async Task<ActionResult<List<Guid>>> GetMatchingUserIds([FromQuery] EventCity city,
-            [FromQuery] EventCategory category) {
-        return Ok(await _preferenceRepository.GetMatchingUserIds(city, category));
+            [FromQuery] EventCategory category, CancellationToken cancellationToken) {
+        return Ok(await _preferenceRepository.GetMatchingUserIds(city, category, cancellationToken));
     }
 
     [Authorize]
     [HttpPatch]
-    public async Task<IActionResult> UpdatePreference(UpdatePreferenceDto request) {
+    public async Task<IActionResult>
+            UpdatePreference(UpdatePreferenceDto request, CancellationToken cancellationToken) {
         string? userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
         if (userIdString is null) {
             return Unauthorized();
         }
 
-        Preference? preference = await _preferenceRepository.GetPreference(Guid.Parse(userIdString));
+        Preference? preference = await _preferenceRepository.GetPreference(Guid.Parse(userIdString),
+                cancellationToken);
 
         if (preference is not null) {
             if (request.City is not null) {
@@ -62,7 +65,7 @@ public class PreferenceController : ControllerBase {
                 preference.Category = request.Category;
             }
 
-            await _preferenceRepository.UpdatePreference(preference);
+            await _preferenceRepository.UpdatePreference(preference, cancellationToken);
         } else {
             Preference newPreference = new() {
                     UserId = Guid.Parse(userIdString),
@@ -70,7 +73,7 @@ public class PreferenceController : ControllerBase {
                     Category = request.Category
             };
 
-            await _preferenceRepository.CreatePreference(newPreference);
+            await _preferenceRepository.CreatePreference(newPreference, cancellationToken);
         }
 
         return NoContent();
@@ -78,14 +81,14 @@ public class PreferenceController : ControllerBase {
 
     [Authorize]
     [HttpDelete]
-    public async Task<IActionResult> DeletePreference() {
+    public async Task<IActionResult> DeletePreference(CancellationToken cancellationToken) {
         string? userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
         if (userIdString is null) {
             return Unauthorized();
         }
 
-        await _preferenceRepository.DeletePreference(Guid.Parse(userIdString));
+        await _preferenceRepository.DeletePreference(Guid.Parse(userIdString), cancellationToken);
 
         return NoContent();
     }

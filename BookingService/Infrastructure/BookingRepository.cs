@@ -16,27 +16,30 @@ public class BookingRepository : IBookingRepository {
         _bookingServiceDbContext = bookingServiceDbContext;
     }
 
-    public async Task<List<Booking>> GetBookings(Guid userId) {
+    public async Task<List<Booking>> GetBookings(Guid userId, CancellationToken cancellationToken) {
         return await _bookingServiceDbContext.Bookings
                 .AsNoTracking()
                 .Where(b => b.UserId == userId)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
     }
 
-    public async Task<BookingIdempotencyRecord?> GetSpecificBookingRecord(Guid userId, string idempotencyKey) {
+    public async Task<BookingIdempotencyRecord?> GetSpecificBookingRecord(Guid userId, string idempotencyKey,
+            CancellationToken cancellationToken) {
         return await _bookingServiceDbContext.BookingIdempotencyRecords
                 .AsNoTracking()
                 .Where(record => record.UserId == userId && record.IdempotencyKey == idempotencyKey)
-                .SingleOrDefaultAsync();
+                .SingleOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<Guid> Book(Booking booking, Guid userId, string idempotencyKey) {
-        await using IDbContextTransaction transaction = await _bookingServiceDbContext.Database.BeginTransactionAsync();
+    public async Task<Guid> Book(Booking booking, Guid userId, string idempotencyKey,
+            CancellationToken cancellationToken) {
+        await using IDbContextTransaction transaction =
+                await _bookingServiceDbContext.Database.BeginTransactionAsync(cancellationToken);
 
         try {
             TicketInventory? ticketInventory = await _bookingServiceDbContext.TicketsInventory
                     .FromSql($"""SELECT * FROM "tickets_inventory" WHERE "EventId" = {booking.EventId} FOR UPDATE""")
-                    .SingleOrDefaultAsync();
+                    .SingleOrDefaultAsync(cancellationToken);
 
             if (ticketInventory is null) {
                 throw new KeyNotFoundException("Event inventory not found");
@@ -77,14 +80,15 @@ public class BookingRepository : IBookingRepository {
                     RetryCount = 0
             });
 
-            await _bookingServiceDbContext.SaveChangesAsync();
-            await transaction.CommitAsync();
+            await _bookingServiceDbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
 
             return booking.Id;
         } catch (DbUpdateException e) when (IsUniqueViolation(e)) {
-            await transaction.RollbackAsync();
+            await transaction.RollbackAsync(cancellationToken);
 
-            BookingIdempotencyRecord? existingBookingRecord = await GetSpecificBookingRecord(userId, idempotencyKey);
+            BookingIdempotencyRecord? existingBookingRecord =
+                    await GetSpecificBookingRecord(userId, idempotencyKey, cancellationToken);
 
             if (existingBookingRecord is null) {
                 throw;
@@ -96,12 +100,13 @@ public class BookingRepository : IBookingRepository {
         }
     }
 
-    public async Task CancelBooking(Guid userId, Guid bookingId) {
-        await using IDbContextTransaction transaction = await _bookingServiceDbContext.Database.BeginTransactionAsync();
+    public async Task CancelBooking(Guid userId, Guid bookingId, CancellationToken cancellationToken) {
+        await using IDbContextTransaction transaction =
+                await _bookingServiceDbContext.Database.BeginTransactionAsync(cancellationToken);
 
         Booking? booking = await _bookingServiceDbContext.Bookings
                 .FromSql($"""SELECT * FROM "bookings" WHERE "Id" = {bookingId} AND "UserId" = {userId} FOR UPDATE """)
-                .SingleOrDefaultAsync();
+                .SingleOrDefaultAsync(cancellationToken);
 
         if (booking is null) {
             throw new KeyNotFoundException("Booking not found");
@@ -113,7 +118,7 @@ public class BookingRepository : IBookingRepository {
 
         TicketInventory? ticketInventory = await _bookingServiceDbContext.TicketsInventory
                 .FromSql($"""SELECT * FROM "tickets_inventory" WHERE "EventId" = {booking.EventId} FOR UPDATE""")
-                .SingleOrDefaultAsync();
+                .SingleOrDefaultAsync(cancellationToken);
 
         if (ticketInventory is null) {
             throw new KeyNotFoundException("Event inventory not found");
@@ -142,8 +147,8 @@ public class BookingRepository : IBookingRepository {
                 RetryCount = 0
         });
 
-        await _bookingServiceDbContext.SaveChangesAsync();
-        await transaction.CommitAsync();
+        await _bookingServiceDbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
     }
 
     static bool IsUniqueViolation(DbUpdateException e) {

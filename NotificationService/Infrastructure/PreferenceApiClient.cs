@@ -11,10 +11,11 @@ public class PreferenceApiClient : IPreferenceApiClient {
     }
 
 
-    public async Task<List<Guid>> GetMatchingUserIds(EventCity city, EventCategory category) {
+    public async Task<List<Guid>> GetMatchingUserIds(EventCity city, EventCategory category,
+            CancellationToken cancellationToken) {
         List<Guid>? result =
                 await _httpClient.GetFromJsonAsync<List<Guid>>(
-                        $"api/preferences/matching-users?city={city}&category={category}");
+                        $"api/preferences/matching-users?city={city}&category={category}", cancellationToken);
 
         return result ?? [];
     }
