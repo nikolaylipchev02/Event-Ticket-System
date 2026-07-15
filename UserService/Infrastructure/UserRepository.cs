@@ -11,12 +11,12 @@ public class UserRepository : IUserRepository {
         _userServiceDbContext = userServiceDbContext;
     }
 
-    public async Task Add(User user) {
+    public async Task Add(User user, CancellationToken cancellationToken) {
         _userServiceDbContext.Users.Add(user);
-        await _userServiceDbContext.SaveChangesAsync();
+        await _userServiceDbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<User?> GetByEmail(string email) {
-        return await _userServiceDbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+    public async Task<User?> GetByEmail(string email, CancellationToken cancellationToken) {
+        return await _userServiceDbContext.Users.FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
     }
 }
