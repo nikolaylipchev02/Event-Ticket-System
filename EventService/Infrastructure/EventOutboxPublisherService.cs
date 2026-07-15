@@ -23,6 +23,8 @@ public class EventOutboxPublisherService : BackgroundService {
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
+        _logger.LogInformation("Event outbox publisher started");
+
         while (!stoppingToken.IsCancellationRequested) {
             try {
                 using IServiceScope scope = _scopeFactory.CreateScope();
@@ -60,9 +62,10 @@ public class EventOutboxPublisherService : BackgroundService {
 
                         _logger.LogError(
                                 e,
-                                "Failed to publish outbox message {MessageId} to topic {Topic}",
+                                "Failed to publish outbox message {MessageId} to topic {Topic} - retry count: {RetryCount}",
                                 message.Id,
-                                message.Topic
+                                message.Topic,
+                                message.RetryCount
                         );
                     }
                 }
@@ -79,7 +82,9 @@ public class EventOutboxPublisherService : BackgroundService {
     }
 
     public override async Task StopAsync(CancellationToken cancellationToken) {
+        _logger.LogInformation("Stopping event outbox publisher");
         _producer.Flush(cancellationToken);
+
         await base.StopAsync(cancellationToken);
     }
 }

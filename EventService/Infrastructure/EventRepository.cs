@@ -208,7 +208,7 @@ public class EventRepository : IEventRepository {
             string newVersion = Guid.NewGuid().ToString("N");
             await TryCache(EventCacheKeys.CacheVersionKey, newVersion, EventCacheOptions.Version, cancellationToken);
         } catch (Exception e) when (IsRedisException(e)) {
-            _logger.LogWarning(e, "Redis invalidation failed");
+            _logger.LogWarning(e, "Failed to invalidate Redis event cache");
         }
     }
 
@@ -217,7 +217,7 @@ public class EventRepository : IEventRepository {
         try {
             await _cache.SetStringAsync(key, value, options, cancellationToken);
         } catch (Exception e) when (IsRedisException(e)) {
-            _logger.LogWarning(e, "Redis write failed for key {Cache Key}, continuing without cache", key);
+            _logger.LogWarning(e, "Redis write failed for key {CacheKey}", key);
         }
     }
 
