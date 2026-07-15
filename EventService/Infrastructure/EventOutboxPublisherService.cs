@@ -52,6 +52,8 @@ public class EventOutboxPublisherService : BackgroundService {
 
                         message.PublishedAt = DateTime.UtcNow;
                         message.LastError = null;
+                    } catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) {
+                        return;
                     } catch (Exception e) {
                         message.RetryCount++;
                         message.LastError = e.Message;
@@ -66,6 +68,8 @@ public class EventOutboxPublisherService : BackgroundService {
                 }
 
                 await db.SaveChangesAsync(stoppingToken);
+            } catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) {
+                return;
             } catch (Exception e) {
                 _logger.LogError(e, "Outbox publisher loop failed");
             }
