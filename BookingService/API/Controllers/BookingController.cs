@@ -21,21 +21,22 @@ public class BookingController : ControllerBase {
 
     [Authorize]
     [HttpGet]
-    public async Task<ActionResult<List<Booking>>> GetBookings() {
+    public async Task<ActionResult<List<Booking>>> GetBookings(CancellationToken cancellationToken) {
         string? userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
         if (userIdString is null) {
             return Unauthorized();
         }
 
-        return Ok(await _bookingRepository.GetBookings(Guid.Parse(userIdString)));
+        return Ok(await _bookingRepository.GetBookings(Guid.Parse(userIdString), cancellationToken));
     }
 
     [Authorize]
     [HttpPost]
     public async Task<IActionResult> Book(
             [FromBody] CreateBookingDto request,
-            [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey
+            [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey,
+            CancellationToken cancellationToken
     ) {
         string? userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
@@ -48,7 +49,7 @@ public class BookingController : ControllerBase {
         }
 
         try {
-            await _bookingService.Book(Guid.Parse(userIdString), request.EventId, idempotencyKey);
+            await _bookingService.Book(Guid.Parse(userIdString), request.EventId, idempotencyKey, cancellationToken);
             return NoContent();
         } catch (KeyNotFoundException) {
             return NotFound();
@@ -59,7 +60,7 @@ public class BookingController : ControllerBase {
 
     [Authorize]
     [HttpDelete("{bookingId:guid}")]
-    public async Task<IActionResult> CancelBooking(Guid bookingId) {
+    public async Task<IActionResult> CancelBooking(Guid bookingId, CancellationToken cancellationToken) {
         string? userIdString = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
         if (userIdString is null) {
@@ -67,7 +68,7 @@ public class BookingController : ControllerBase {
         }
 
         try {
-            await _bookingRepository.CancelBooking(Guid.Parse(userIdString), bookingId);
+            await _bookingRepository.CancelBooking(Guid.Parse(userIdString), bookingId, cancellationToken);
             return NoContent();
         } catch (KeyNotFoundException) {
             return NotFound();

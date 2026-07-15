@@ -10,8 +10,8 @@ public class EventApiClient : IEventApiClient {
         _httpClient = httpClient;
     }
 
-    public async Task<bool> EventExists(Guid id) {
-        using HttpResponseMessage response = await _httpClient.GetAsync($"api/events/{id}");
+    public async Task<bool> EventExists(Guid id, CancellationToken cancellationToken) {
+        using HttpResponseMessage response = await _httpClient.GetAsync($"api/events/{id}", cancellationToken);
 
         return response.StatusCode == HttpStatusCode.OK;
     }
