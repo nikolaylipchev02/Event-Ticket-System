@@ -4,9 +4,12 @@ using SharedContracts;
 namespace PreferenceService.Application;
 
 public interface IPreferenceRepository {
-    public Task CreatePreference(Preference preference);
-    public Task<Preference?> GetPreference(Guid userId);
-    public Task<List<Guid>> GetMatchingUserIds(EventCity city, EventCategory category);
-    public Task UpdatePreference(Preference preference);
-    public Task DeletePreference(Guid userId);
+    public Task CreatePreference(Preference preference, CancellationToken cancellationToken);
+    public Task<Preference?> GetPreference(Guid userId, CancellationToken cancellationToken);
+
+    public Task<List<Guid>> GetMatchingUserIds(EventCity city, EventCategory category,
+            CancellationToken cancellationToken);
+
+    public Task UpdatePreference(Preference preference, CancellationToken cancellationToken);
+    public Task DeletePreference(Guid userId, CancellationToken cancellationToken);
 }
