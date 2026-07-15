@@ -1,7 +1,10 @@
 using Confluent.Kafka;
 using EventService.Application;
 using EventService.Infrastructure;
+using EventService.Infrastructure.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 const string EVENT_SERVICE_DB_CONNECTION_STRING = "EventServiceDbConnection";
 const string REDIS_INSTANCE_NAME = "EventService:";
@@ -12,6 +15,7 @@ AddMessaging();
 AddCaching();
 AddPersistence();
 AddDependencies();
+AddHealthChecks();
 
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
@@ -19,6 +23,14 @@ builder.Services.AddControllers();
 WebApplication app = builder.Build();
 
 app.MapControllers();
+
+app.MapHealthChecks("/health/live", new HealthCheckOptions {
+        Predicate = _ => false
+});
+
+app.MapHealthChecks("/health/ready", new HealthCheckOptions {
+        Predicate = healthCheck => healthCheck.Tags.Contains("ready")
+});
 
 if (app.Environment.IsDevelopment()) {
     app.MapOpenApi();
@@ -68,4 +80,20 @@ void AddPersistence() {
 
 void AddDependencies() {
     builder.Services.AddScoped<IEventRepository, EventRepository>();
+}
+
+void AddHealthChecks() {
+    builder.Services.AddHealthChecks()
+            .AddCheck<EventServiceDatabaseHealthCheck>(
+                    "event-service-db"
+                    , HealthStatus.Unhealthy,
+                    ["ready"])
+            .AddCheck<EventServiceMessagingHealthCheck>(
+                    "event-service-messaging",
+                    HealthStatus.Unhealthy,
+                    ["ready"])
+            .AddCheck<EventServiceCachingHealthCheck>(
+                    "event-service-caching",
+                    HealthStatus.Unhealthy,
+                    ["ready"]);
 }
