@@ -6,7 +6,7 @@ namespace EventService.Infrastructure.Diagnostics.HealthChecks;
 public class EventServiceMessagingHealthCheck : IHealthCheck {
     readonly IConfiguration _configuration;
 
-    const int METADATA_DELAY = 5;
+    const int METADATA_DELAY = 2;
 
     public EventServiceMessagingHealthCheck(IConfiguration configuration) {
         _configuration = configuration;
