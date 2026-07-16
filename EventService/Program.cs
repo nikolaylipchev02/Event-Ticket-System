@@ -1,13 +1,19 @@
 using Confluent.Kafka;
 using EventService.Application;
 using EventService.Infrastructure;
+using EventService.Infrastructure.Diagnostics;
 using EventService.Infrastructure.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 
 const string EVENT_SERVICE_DB_CONNECTION_STRING = "EventServiceDbConnection";
 const string REDIS_INSTANCE_NAME = "EventService:";
+
+const int EXPORT_METRICS_INTERVAL_IN_MS = 1000;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +22,7 @@ AddCaching();
 AddPersistence();
 AddDependencies();
 AddHealthChecks();
+AddMetrics();
 
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
@@ -96,4 +103,21 @@ void AddHealthChecks() {
                     "event-service-caching",
                     HealthStatus.Unhealthy,
                     ["ready"]);
+}
+
+void AddMetrics() {
+    builder.Services.AddOpenTelemetry()
+            .ConfigureResource(resource => resource.AddService("EventService"))
+            .WithMetrics(metrics => {
+                metrics.AddMeter(EventServiceMetrics.METER_NAME);
+                metrics.AddAspNetCoreInstrumentation();
+                metrics.AddOtlpExporter((exporterOptions, metricReaderOptions) => {
+                    exporterOptions.Endpoint = new Uri(
+                            builder.Configuration["Otlp:MetricsEndpoint"]
+                            ?? "http://localhost:9090/api/v1/otlp/v1/metrics");
+                    exporterOptions.Protocol = OtlpExportProtocol.HttpProtobuf;
+                    metricReaderOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds =
+                            EXPORT_METRICS_INTERVAL_IN_MS;
+                });
+            });
 }

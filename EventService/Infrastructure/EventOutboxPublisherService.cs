@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using EventService.Domain.Entities;
 using Confluent.Kafka;
+using EventService.Infrastructure.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventService.Infrastructure;
@@ -42,6 +44,8 @@ public class EventOutboxPublisherService : BackgroundService {
                 }
 
                 foreach (OutboxMessage message in messages) {
+                    Stopwatch stopwatch = Stopwatch.StartNew();
+
                     try {
                         await _producer.ProduceAsync(
                                 message.Topic,
@@ -54,6 +58,8 @@ public class EventOutboxPublisherService : BackgroundService {
 
                         message.PublishedAt = DateTime.UtcNow;
                         message.LastError = null;
+
+                        EventServiceMetrics.RecordOutboxPublish("success", stopwatch.Elapsed);
                     } catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) {
                         return;
                     } catch (Exception e) {
@@ -67,6 +73,9 @@ public class EventOutboxPublisherService : BackgroundService {
                                 message.Topic,
                                 message.RetryCount
                         );
+                        EventServiceMetrics.RecordOutboxPublish("failed", stopwatch.Elapsed);
+                    } finally {
+                        stopwatch.Stop();
                     }
                 }
 
