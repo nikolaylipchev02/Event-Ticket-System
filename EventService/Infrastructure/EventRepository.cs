@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using SharedContracts;
 using MessagingContracts;
@@ -5,6 +6,7 @@ using EventService.Application;
 using EventService.Application.DTOs;
 using EventService.Domain.Entities;
 using EventService.Infrastructure.Caching;
+using EventService.Infrastructure.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using StackExchange.Redis;
@@ -30,9 +32,13 @@ public class EventRepository : IEventRepository {
             string? cachedEvents = await _cache.GetStringAsync(cacheKey, cancellationToken);
 
             if (cachedEvents is not null) {
+                EventServiceMetrics.RecordCacheResult("get_all", "hit");
                 return JsonSerializer.Deserialize<List<Event>>(cachedEvents, SharedJsonOptions.Web) ?? [];
             }
+
+            EventServiceMetrics.RecordCacheResult("get_all", "miss");
         } catch (Exception e) when (IsRedisException(e)) {
+            EventServiceMetrics.RecordCacheResult("get_all", "fallback");
             _logger.LogWarning(e, "Redis read failed for key {CacheKey}, falling back to database", cacheKey);
         }
 
@@ -54,9 +60,13 @@ public class EventRepository : IEventRepository {
             string? cachedEvents = await _cache.GetStringAsync(cacheKey, cancellationToken);
 
             if (cachedEvents is not null) {
+                EventServiceMetrics.RecordCacheResult("get_all_filtered", "hit");
                 return JsonSerializer.Deserialize<List<Event>>(cachedEvents, SharedJsonOptions.Web) ?? [];
             }
+
+            EventServiceMetrics.RecordCacheResult("get_all_filtered", "miss");
         } catch (Exception e) when (IsRedisException(e)) {
+            EventServiceMetrics.RecordCacheResult("get_all_filtered", "fallback");
             _logger.LogWarning(e, "Redis read failed for key {CacheKey}, falling back to database", cacheKey);
         }
 
@@ -104,9 +114,13 @@ public class EventRepository : IEventRepository {
             string? cachedEvent = await _cache.GetStringAsync(cacheKey, cancellationToken);
 
             if (cachedEvent is not null) {
+                EventServiceMetrics.RecordCacheResult("get_specific", "hit");
                 return JsonSerializer.Deserialize<Event>(cachedEvent, SharedJsonOptions.Web);
             }
+
+            EventServiceMetrics.RecordCacheResult("get_specific", "miss");
         } catch (Exception e) when (IsRedisException(e)) {
+            EventServiceMetrics.RecordCacheResult("get_specific", "fallback");
             _logger.LogWarning(e, "Redis read failed for key {CacheKey}, falling back to database", cacheKey);
         }
 
@@ -145,7 +159,19 @@ public class EventRepository : IEventRepository {
                 RetryCount = 0
         });
 
-        await _eventServiceDbContext.SaveChangesAsync(cancellationToken);
+        Stopwatch stopwatch = Stopwatch.StartNew();
+
+        try {
+            await _eventServiceDbContext.SaveChangesAsync(cancellationToken);
+            EventServiceMetrics.RecordEventChange("create", stopwatch.Elapsed);
+        } catch (Exception ex) {
+            EventServiceMetrics.RecordEventWriteFailure("create", stopwatch.Elapsed);
+            _logger.LogError(ex, "Database write failed while processing event {EventId}.", e.Id);
+            throw;
+        } finally {
+            stopwatch.Stop();
+        }
+
         await InvalidateEventCache(cancellationToken);
     }
 
@@ -171,7 +197,19 @@ public class EventRepository : IEventRepository {
                 RetryCount = 0
         });
 
-        await _eventServiceDbContext.SaveChangesAsync(cancellationToken);
+        Stopwatch stopwatch = Stopwatch.StartNew();
+
+        try {
+            await _eventServiceDbContext.SaveChangesAsync(cancellationToken);
+            EventServiceMetrics.RecordEventChange("update", stopwatch.Elapsed);
+        } catch (Exception ex) {
+            EventServiceMetrics.RecordEventWriteFailure("update", stopwatch.Elapsed);
+            _logger.LogError(ex, "Database write failed while processing event {EventId}.", e.Id);
+            throw;
+        } finally {
+            stopwatch.Stop();
+        }
+
         await InvalidateEventCache(cancellationToken);
     }
 
@@ -180,7 +218,20 @@ public class EventRepository : IEventRepository {
 
         if (e is not null) {
             _eventServiceDbContext.Events.Remove(e);
-            await _eventServiceDbContext.SaveChangesAsync(cancellationToken);
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            try {
+                await _eventServiceDbContext.SaveChangesAsync(cancellationToken);
+                EventServiceMetrics.RecordEventChange("delete", stopwatch.Elapsed);
+            } catch (Exception ex) {
+                EventServiceMetrics.RecordEventWriteFailure("delete", stopwatch.Elapsed);
+                _logger.LogError(ex, "Database write failed while processing event {EventId}.", e.Id);
+                throw;
+            } finally {
+                stopwatch.Stop();
+            }
+
             await InvalidateEventCache(cancellationToken);
         }
     }
@@ -208,7 +259,7 @@ public class EventRepository : IEventRepository {
             string newVersion = Guid.NewGuid().ToString("N");
             await TryCache(EventCacheKeys.CacheVersionKey, newVersion, EventCacheOptions.Version, cancellationToken);
         } catch (Exception e) when (IsRedisException(e)) {
-            _logger.LogWarning(e, "Redis invalidation failed");
+            _logger.LogWarning(e, "Failed to invalidate Redis event cache");
         }
     }
 
@@ -217,7 +268,7 @@ public class EventRepository : IEventRepository {
         try {
             await _cache.SetStringAsync(key, value, options, cancellationToken);
         } catch (Exception e) when (IsRedisException(e)) {
-            _logger.LogWarning(e, "Redis write failed for key {Cache Key}, continuing without cache", key);
+            _logger.LogWarning(e, "Redis write failed for key {CacheKey}", key);
         }
     }
 

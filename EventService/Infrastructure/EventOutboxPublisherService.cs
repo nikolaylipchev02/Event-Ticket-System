@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using EventService.Domain.Entities;
 using Confluent.Kafka;
+using EventService.Infrastructure.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventService.Infrastructure;
@@ -23,6 +25,8 @@ public class EventOutboxPublisherService : BackgroundService {
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
+        _logger.LogInformation("Event outbox publisher started");
+
         while (!stoppingToken.IsCancellationRequested) {
             try {
                 using IServiceScope scope = _scopeFactory.CreateScope();
@@ -40,6 +44,8 @@ public class EventOutboxPublisherService : BackgroundService {
                 }
 
                 foreach (OutboxMessage message in messages) {
+                    Stopwatch stopwatch = Stopwatch.StartNew();
+
                     try {
                         await _producer.ProduceAsync(
                                 message.Topic,
@@ -52,6 +58,8 @@ public class EventOutboxPublisherService : BackgroundService {
 
                         message.PublishedAt = DateTime.UtcNow;
                         message.LastError = null;
+
+                        EventServiceMetrics.RecordOutboxPublish("success", stopwatch.Elapsed);
                     } catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) {
                         return;
                     } catch (Exception e) {
@@ -60,10 +68,14 @@ public class EventOutboxPublisherService : BackgroundService {
 
                         _logger.LogError(
                                 e,
-                                "Failed to publish outbox message {MessageId} to topic {Topic}",
+                                "Failed to publish outbox message {MessageId} to topic {Topic} - retry count: {RetryCount}",
                                 message.Id,
-                                message.Topic
+                                message.Topic,
+                                message.RetryCount
                         );
+                        EventServiceMetrics.RecordOutboxPublish("failed", stopwatch.Elapsed);
+                    } finally {
+                        stopwatch.Stop();
                     }
                 }
 
@@ -79,7 +91,9 @@ public class EventOutboxPublisherService : BackgroundService {
     }
 
     public override async Task StopAsync(CancellationToken cancellationToken) {
+        _logger.LogInformation("Stopping event outbox publisher");
         _producer.Flush(cancellationToken);
+
         await base.StopAsync(cancellationToken);
     }
 }
